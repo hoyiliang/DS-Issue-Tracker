@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
-
+import java.util.*;
 import java.text.SimpleDateFormat;
 import jdk.swing.interop.SwingInterOpUtils;
 import org.json.simple.JSONArray;
@@ -18,6 +18,10 @@ import org.json.simple.parser.ParseException;
 public class Main {
 
     static List<Project> projects = new ArrayList<>();
+    public static Scanner input = new Scanner(System.in);
+    public static DBConnect connection = new DBConnect();
+    public static String comText, timeStamp, userName;
+    public static int issueID, comID, userID, interaction;
 
     public static void main(String[] args) throws IOException, ParseException {
         JSONParser jp = new JSONParser();
@@ -34,6 +38,19 @@ public class Main {
         }
 
         projectBoard(projectsArr);
+        
+        /* main menu segment for comments & reactions *reminder to integrate
+        System.out.println("Enter\n'r' to react \n'c' to comment \n'help' for more commands \nany key to exit");
+        String x = input.nextLine();
+        if (x.equalsIgnoreCase("c")) {
+            inputComment();
+            viewComment();
+        } else if (x.equalsIgnoreCase("r")) {
+            inputReaction();
+        } else {
+            //redirect to main page
+        }
+        */
     }
 
     public static void projectBoard(JSONArray projectsArr) {
@@ -164,3 +181,29 @@ public class Main {
         // return notimplementyet;
     }
 }
+
+
+//codes related to comments and reaction @wy
+    public static void newTime(int comID) {
+        timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new java.util.Date());
+    }
+
+    public static void inputComment() {
+        System.out.println("Enter: ");
+        comText = input.nextLine();
+        connection.newComment(issueID, userName, comID, comText, timeStamp);
+    }
+
+    public static void viewComment() {
+        System.out.println("");
+        connection.getComment(issueID);
+    }
+
+    public static void inputReaction() {
+        input.nextLine();
+        System.out.println("Which comment are you recating to? *Type in the comID*");
+        comID = input.nextInt();
+        System.out.println("React \n '1' for happy  \n'2' for sad \n'3' for angry \n'4' for confused \n'5' for thankful");
+        interaction = input.nextInt();
+        connection.newReaction(userID, comID, interaction);
+    }
