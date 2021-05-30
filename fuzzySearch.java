@@ -3,8 +3,10 @@ package DSproject;
 import java.util.ArrayList;
 
 public class fuzzySearch {
+    //Method to obtain fuzzy search results
     public void results (String search, ArrayList issueID) {
         int space = 0;
+        //To calculate how many words
         for (int i = 0; i < search.length(); i++) {
             if (search.charAt(i) == 32) {
                 space++;
@@ -13,7 +15,9 @@ public class fuzzySearch {
 
         int[][] difference = new int[issueID.size()][2];
         for (int j = 0; j < issueID.size(); j++) {
+            //Obtain each issue
             String[] data = DBConnect.getComment((Integer) issueID.get(j)).split(" ");
+            //Split issue according to the number of words of String search
             String[] group = new String[data.length - space];
             for (int k = 0; k < group.length; k++) {
                 for (int l = k; l <= k + space; l++) {
@@ -21,20 +25,24 @@ public class fuzzySearch {
                 }
             }
 
+            //Obtain levenshtein distance String search and part of issue text
             int[] compare = new int[group.length];
             compare[0] = distance(search, group[0]);
             int smallest = compare[0];
             for (int k = 1; k < group.length; k++) {
                 compare[k] = distance(search, group[k]);
+                //Obtain the smallest levenshtein distance in issue
                 if (compare[k] < smallest) {
                     smallest = compare[k];
                 }
             }
 
+            //Store issueID and smallest levenshtein distance of issue
             difference[j][1] = issueID.indexOf(j);
             difference[j][2] = smallest;
         }
 
+        //Use insert sort to sort levenshtein distance of all issues
         for (int n = 1; n < difference.length; n++) {
             int key = difference[n][2];
             int keyIndex = difference[n][1];
@@ -48,14 +56,16 @@ public class fuzzySearch {
             difference[m+1][1] = keyIndex;
         }
 
+        //Displaying issue with less than 3*(space + 1) levenshtein distance
         for (int p = 0; p < difference.length; p++) {
-            if (difference[p][2] < 2*(space + 1)) {
+            if (difference[p][2] < 3*(space + 1)) {
                 DBConnect.getComment((Integer) issueID.get(p));
             }
         }
 
     }
 
+    //Using levenshtein distance to calculate difference
     public int distance(String search, String database) {
         search = search.toLowerCase();
         database = database.toLowerCase();
@@ -77,5 +87,3 @@ public class fuzzySearch {
     }
 
 }
-
-
