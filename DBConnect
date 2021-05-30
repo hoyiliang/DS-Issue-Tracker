@@ -120,4 +120,46 @@ public class DBConnect {
             System.out.println(ex);
         }
     }*/
+    
+    
+    /*Draft for FuzzySearch
+    public static String getComment(int issueID) {
+        int order_num = 1;
+        int happy = 0, sad = 0, angry = 0, confused = 0, thankful = 0;
+        String all = "";
+        try {
+            String query = "SELECT comment.comID, comment.userName, comment.timeStamp, comment.comText,"
+                    + "(SELECT COUNT(interaction) FROM reaction WHERE interaction = 1 AND reaction.comID = comment.comID) as happy,"
+                    + "(SELECT COUNT(interaction) FROM reaction WHERE interaction = 2 AND reaction.comID = comment.comID) as sad,"
+                    +//interactions are tabulated
+                    "(SELECT COUNT(interaction) FROM reaction WHERE interaction = 3 AND reaction.comID = comment.comID) as angry,"
+                    + "(SELECT COUNT(interaction) FROM reaction WHERE interaction = 4 AND reaction.comID = comment.comID) as confused,"
+                    + "(SELECT COUNT(interaction) FROM reaction WHERE interaction = 5 AND reaction.comID = comment.comID) as thankful"
+                    + " FROM comment"//from the comment table
+                    + " WHERE issueID = " + issueID + "";//whereby the issueID is the one passed through the args
+
+            rs = st.executeQuery(query);
+
+            while (rs.next()) {
+                String userName = rs.getString("userName");
+                String timeStamp = rs.getString("timeStamp");
+                String comText = rs.getString("comText");
+                String comID = rs.getString("comID");
+                happy = rs.getInt("happy");
+                sad = rs.getInt("sad");
+                angry = rs.getInt("angry");
+                confused = rs.getInt("confused");
+                thankful = rs.getInt("thankful");
+
+                all += userName + timeStamp + comText + comID;
+                order_num++;
+
+            }
+
+        } catch (SQLException ex) {
+            System.out.println(ex);
+        }
+        return all;
+    }
+    */
 }
