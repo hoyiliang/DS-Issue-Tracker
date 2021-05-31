@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,7 +24,8 @@ public class Comment {
     @JsonProperty("react")
     private JSONArray reactArr = null;
     @JsonProperty("timestamp")
-    private long timestamp;
+    private long timestampUndated;
+    private Date timestamp;
     @JsonProperty("user")
     private String user;
     private List<React> react = new ArrayList<>();
@@ -47,7 +49,8 @@ public class Comment {
         this.commentId = commentId;
         this.text = text;
         this.reactArr = reactArr;
-        this.timestamp = timestamp;
+        this.timestampUndated = timestamp;
+        this.timestamp = new Date(timestamp*1000);
         this.user = user;
         this.react = react;
 
@@ -85,12 +88,12 @@ public class Comment {
         this.reactArr = reactArr;
     }
 
-    public long getTimestamp() {
-        return timestamp;
+    public long getTimestampUndated() {
+        return timestampUndated;
     }
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
+    public void setTimestampUndated(long timestampUndated) {
+        this.timestampUndated = timestampUndated;
     }
 
     public String getUser() {
@@ -100,4 +103,12 @@ public class Comment {
     public void setUser(String user) {
         this.user = user;
     }
+
+    public Date getTimestamp() { return timestamp; }
+
+    public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
+
+    public List<React> getReact() { return react; }
+
+    public void setReact(List<React> react) { this.react = react; }
 }
