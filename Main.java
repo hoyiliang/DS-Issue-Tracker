@@ -98,9 +98,15 @@ public class Main {
                 JSONObject newjsondata = new JSONObject();
                 newjsondata.put("projects", projectsArr);
                 newjsondata.put("users", usersArr);
+                // Pretty-print JSON using GSON
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                JsonParser jp = new JsonParser();
+                JsonElement je = jp.parse(newjsondata.toJSONString());
+                String formattedJsonString = gson.toJson(je);
+
                 // write data to json algorithm
                 try (FileWriter file = new FileWriter("data.json")) {
-                    file.write(newjsondata.toJSONString());
+                    file.write(formattedJsonString);
                     file.flush();
 
                 } catch (IOException ee) {
@@ -277,7 +283,7 @@ public class Main {
             System.out.println("Enter selected issue ID to check issue");
             System.out.println("or 's' to search");
             System.out.println("or 'c' to create issue");
-            System.out.println("or 'exit' to exit to Project Board");
+            System.out.println("or 'exit' to logout and shutdown the program");
             System.out.print("Input: ");
             String issueInput = sc.next();
 
