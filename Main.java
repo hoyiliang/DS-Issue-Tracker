@@ -1,14 +1,20 @@
+package javaapplication1;
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Instant;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
-import java.util.*;
 import java.text.SimpleDateFormat;
-import jdk.swing.interop.SwingInterOpUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -19,54 +25,118 @@ public class Main {
 
     static List<Project> projects = new ArrayList<>();
     static List<User> users = new ArrayList<>();
-    public static Scanner input = new Scanner(System.in);
+    public static Scanner sc = new Scanner(System.in);
     public static DBConnect connection = new DBConnect();
-    public static String comText, timeStamp, userName;
-    public static int issueID, comID, userID, interaction;
 
-    public static void main(String[] args) throws IOException, ParseException {
-        JSONParser jp = new JSONParser();
-        JSONObject jo = (JSONObject) jp.parse(new FileReader("C:\\Users\\yilia\\Downloads\\data.json"));
-        JSONArray projectsArr = (JSONArray) jo.get("projects");
-        JSONArray usersArr = (JSONArray) jo.get("users");
-
-        for (Object o : projectsArr) {
-            JSONObject projectIndex = (JSONObject) o;
-
-            long projectID = (long) projectIndex.get("id");
-            String projectName = (String) projectIndex.get("name");
-            JSONArray issuesArr = (JSONArray) projectIndex.get("issues");
-            projects.add(new Project(projectID, projectName, issuesArr));
+    //Setting up JSON READ
+    public static void main(String[] args) throws IOException, ParseException, FileNotFoundException {
+        JSONArray projectsArr = new JSONArray();
+        JSONArray issuesArr = new JSONArray();
+        JSONArray usersArr = new JSONArray();
+        if (connection.getProjectSize() == 0) {
+            
         }
-
-        for (Object o : usersArr) {
-            JSONObject userIndex = (JSONObject) o;
-
-            long userID = (long) userIndex.get("userid");
-            String userName = (String) userIndex.get("username");
-            String password = (String) userIndex.get("password");
-            users.add(new User(userID, userName, password));
+        else { 
+            for (int i=1; i<=connection.getProjectSize(); i++) {
+                projects.add(connection.getProject(i));
+                JSONObject newProject = new JSONObject();
+                    newProject.put("id", (long) projects.get(i-1).getId());
+                    newProject.put("name", (String) projects.get(i-1).getName());
+                    newProject.put("issues", (JSONArray) projects.get(i-1).getIssuesArr());
+                projectsArr.add(newProject);
+            }
         }
+        if (connection.getUserSize() == 0) {
 
-        loginInterface(usersArr , projectsArr);
-        
-        /* main menu segment for comments & reactions *reminder to integrate
-        System.out.println("Enter\n'r' to react \n'c' to comment \n'help' for more commands \nany key to exit");
-        String x = input.nextLine();
-        if (x.equalsIgnoreCase("c")) {
-            inputComment();
-            viewComment();
-        } else if (x.equalsIgnoreCase("r")) {
-            inputReaction();
+        }
+        else { 
+            for (int i=1; i<=connection.getUserSize(); i++) {
+                users.add(connection.getUser(i));
+                JSONObject newUser = new JSONObject();
+                    newUser.put("userid", (long) users.get(i).getUserid());
+                    newUser.put("username", (String) users.get(i).getUsername());
+                    newUser.put("password", (String) users.get(i).getPassword());
+                usersArr.add(newUser);
+            }
+        }
+        System.out.print("Import JSON? (y/n): ");
+        char importjsonchoice = sc.next().charAt(0);
+        if (importjsonchoice == 'y' || importjsonchoice == 'Y') {
+
+            System.out.print("Specify file path (do \\\\ instead of \\): ");
+            String filepath = sc.nextLine();
+            
+            //Read JSON file
+                JSONParser jp = new JSONParser();
+                JSONObject jo = (JSONObject) jp.parse(new FileReader(filepath));
+                JSONArray JSONprojectsArr = (JSONArray) jo.get("projects");
+                JSONArray JSONusersArr = (JSONArray) jo.get("users");
+                
+            //Adding JSON Data to runtime
+                for (int i=0; i<JSONprojectsArr.size(); i++) {
+                    JSONObject projectIndex = (JSONObject) JSONprojectsArr.get(i);
+
+                    long projectID = (long) projectIndex.get("id");
+                    String projectName = (String) projectIndex.get("name");
+                    issuesArr = (JSONArray) projectIndex.get("issues");
+                    if (projects.size() == 0) {
+                        projectsArr.add(projectIndex);
+                        projects.add(new Project(connection.getProjectSize()+1,projectName,issuesArr));
+                        connection.newProject(connection.getProjectSize()+1, projectName, issuesArr.toJSONString());
+                    } else {
+                        for (int j=0; j<projects.size(); j++) {
+                            if (projectName == projects.get(i).getName()) {
+                                projectsArr.set(j, projectIndex);
+                                projects.set(i, new Project(projects.get(i).getId(),projectName,issuesArr));
+                            } else {
+                                JSONObject newProjectIndex = new JSONObject();
+                                    newProjectIndex.put("id", (long) connection.getProjectSize()+1);
+                                    newProjectIndex.put("name",(String) projectName);
+                                    newProjectIndex.put("issues", (JSONArray) issuesArr);
+                                projectsArr.add(projectIndex);
+                                projects.add(new Project(connection.getProjectSize()+1,projectName,issuesArr));
+                                connection.newProject(connection.getProjectSize()+1, projectName, issuesArr.toJSONString());
+                            }
+                        }
+                    }
+                }
+            
+                for (int i=0; i<JSONusersArr.size(); i++) {
+                    JSONObject userIndex = (JSONObject) JSONusersArr.get(i);
+
+                    long userID = (long) userIndex.get("userid");
+                    String userName = (String) userIndex.get("username");
+                    String password = (String) userIndex.get("password");
+                    if (users.size() == 0) {
+                        usersArr.add(userIndex);
+                        users.add(new User(connection.getUserSize()+1,userName,password));
+                        connection.newUser(connection.getUserSize()+1, userName, password);
+                    } else {
+                        for (int j=0; j<users.size(); j++) {
+                            if (userName == users.get(i).getUsername()) {
+                                usersArr.set(j, userIndex);
+                                users.set(i, new User(users.get(i).getUserid(), userName, password));
+                            } else {
+                                JSONObject newUserIndex = new JSONObject();
+                                    newUserIndex.put("userid", (long) connection.getUserSize()+1);
+                                    newUserIndex.put("username", (String) userName);
+                                    newUserIndex.put("password", (String) password);
+                                usersArr.add(newUserIndex);
+                                users.add(new User(connection.getUserSize()+1,userName,password));
+                                connection.newUser(connection.getUserSize()+1,userName,password);
+                            }
+                        }
+                    }
+                }
+
+            loginInterface(usersArr , projectsArr);
         } else {
-            //redirect to main page
+            loginInterface(usersArr, projectsArr);
         }
-        */
     }
-    
+
     // Visible runtime START
     public static void loginInterface(JSONArray usersArr,JSONArray projectsArr) {
-        Scanner sc = new Scanner(System.in);
         String getPass = "";
         long getID = 0;
         String getUsername = "";
@@ -95,22 +165,27 @@ public class Main {
                 User programUser = new User(getID, getUsername, getPass);
                 projectsArr = projectBoard(projectsArr, programUser);
 
-                JSONObject newjsondata = new JSONObject();
-                newjsondata.put("projects", projectsArr);
-                newjsondata.put("users", usersArr);
-                // Pretty-print JSON using GSON
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                JsonParser jp = new JsonParser();
-                JsonElement je = jp.parse(newjsondata.toJSONString());
-                String formattedJsonString = gson.toJson(je);
+                System.out.print("Do you want to export new JSON data to a file? (y/n): ");
+                char export = sc.next().charAt(0);
+                if (export == 'y' || export == 'Y') {
+                    JSONObject newjsondata = new JSONObject();
+                    newjsondata.put("projects", projectsArr);
+                    newjsondata.put("users", usersArr);
 
-                // write data to json algorithm
-                try (FileWriter file = new FileWriter("data.json")) {
-                    file.write(formattedJsonString);
-                    file.flush();
+                    // Pretty-print JSON using GSON
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    JsonParser jp = new JsonParser();
+                    JsonElement je = jp.parse(newjsondata.toJSONString());
+                    String formattedJsonString = gson.toJson(je);
 
-                } catch (IOException ee) {
-                    ee.printStackTrace();
+                    // write data to json algorithm
+                    try (FileWriter file = new FileWriter("data.json")) {
+                        file.write(formattedJsonString);
+                        file.flush();
+
+                    } catch (IOException ee) {
+                        ee.printStackTrace();
+                    }
                 }
 
             } else { //Login fail
@@ -120,7 +195,7 @@ public class Main {
         }
         else if (choiceAuth == 2) { //Registration
             System.out.println("==================== Registration ====================");
-            getID = usersArr.size();
+            getID = connection.getUserSize()+1;
             System.out.print("Username: "); getUsername = sc.nextLine();
             System.out.print("Password: "); getPass = sc.nextLine();
             users.add(new User(getID, getUsername, getPass));
@@ -129,6 +204,7 @@ public class Main {
             newUser.put("username", (String) getUsername);
             newUser.put("password", (String) getPass);
             usersArr.add(newUser);
+            connection.newUser(getID, getUsername, getPass);
             System.out.println("================ Registration Success ================");
 
             loginInterface(usersArr, projectsArr);
@@ -137,9 +213,7 @@ public class Main {
         System.out.println("End of Program");
     }
 
-
     public static JSONArray projectBoard(JSONArray projectsArr, User programUser) {
-        Scanner sc = new Scanner(System.in);
 
         String alignFormatLeft = "| %-2d | %-16s | %-6d |%n";
         // Project Board
@@ -169,6 +243,7 @@ public class Main {
             String projectName = projects.get(projectSel-1).getName();
             Project modifiedProjectIndex = new Project(id, projectName, projectIssues);
             projects.set(projectSel-1, modifiedProjectIndex);
+            connection.setProject(projectSel-1, projectIssues.toJSONString());
 
                 // Add project data in json syntax
                 JSONObject newProject = new JSONObject();
@@ -199,6 +274,7 @@ public class Main {
                 newProject.put("name", (String) projectName);
                 newProject.put("issues", (JSONArray) projectIssues);
                 projectsArr.add(newProject);
+                connection.newProject(connection.getProjectSize()+1, projectName, projectIssues.toJSONString());
 
                 return projectsArr;
 
