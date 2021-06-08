@@ -20,7 +20,107 @@ public class DBConnect {
         }
     }
 
+        public void newProject(long ID, String Name, String IssuesArrJSONString) {
+        try {
+            String query = "INSERT INTO projects (ID, Name, Issues) values (\'" + ID + "\', \'" + Name + "\', \'" + IssuesArrJSONString + "\')";
+            st.executeUpdate(query);
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+    }
+    
+    public long getProjectSize() {
+        long size = 0;
+        try {
+            String query = "SELECT COUNT(*) FROM projects";
+            rs = st.executeQuery(query);
+            while (rs.next()) {
+                size = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        } 
+        return size;
+    }
+    
+    public Project getProject(long ID) throws ParseException {
+        JSONArray issuesArr = new JSONArray();
+        JSONParser parser = new JSONParser();
+        String name = ""; String issues;
+        try {
+            String query = "SELECT * FROM projects WHERE ID = " + ID +"";
+            rs = st.executeQuery(query);
+            
+            ID = rs.getLong("ID");
+            name = rs.getString("Name");
+            issues = rs.getString("Issues");
+            issuesArr = (JSONArray) parser.parse(issues);
+            
+            return new Project(ID,name,issuesArr);
+        } catch (SQLException | ParseException e) {
+            System.out.println("Fail to find a project with specified ID");
+            System.out.println("Detail: " +e);
+            return null;
+        }
+    }
+    
+    public void setProject(long ID, String issuesJsonString) {
+        try {
+            String query = "UPDATE projects SET Issues = " +issuesJsonString +" WHERE ID = " +ID +"";
+            rs = st.executeQuery(query);
+        } catch (SQLException e) {
+            System.out.println("Fail to update a project with new data.");
+            System.out.println("Detail: " +e);
+        }
+    }
+    
+    public void newUser(long ID, String Username, String Password) {
+        try {
+            String query = "INSERT INTO projects (ID, Name, Issues) values (\'" + ID + "\', \'" + Username + "\', \'" + Password + "\')";
+            rs = st.executeQuery(query);
+        } catch (SQLException e) {
+            System.out.println("Fail to register new user data into MySQL database");
+            System.out.println("Detail: " +e);
+        }
+    }
+    
+    public long getUserSize() {
+        long size = 0;
+        try {
+            String query = "SELECT COUNT(*) FROM users";
+            rs = st.executeQuery(query);
+            while (rs.next()) {
+                size = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        } 
+        return size;
+    }
+    
+    public User getUser(long ID) {
+        
+        try {
+            String query = "SELECT * FROM users WHERE ID = " +ID +"";
+            rs = st.executeQuery(query);
+            
+            ID = rs.getLong("ID");
+            String Username = rs.getString("Username");
+            String Password = rs.getString("Password");
+            
+            return new User(ID,Username,Password);
+        } catch (SQLException e) {
+            System.out.println("Fail to find a user with specified ID.");
+            System.out.println("Detail: " +e);
+            return null;
+        }
+    }
+    
+    public void setUser() {
+        System.out.println("No need modify user data.");
+    }
     //SELECT EXISTS(SELECT * FROM yourTableName WHERE yourCondition);
+    /*
     public void newReaction(int userID, int comID, int interaction) {
         try {
             String query = "INSERT INTO reaction (userID , comID, interaction) values (\'" + userID + "\', \'" + comID + "\', \'" + interaction + "\')";
@@ -85,7 +185,7 @@ public class DBConnect {
             System.out.println(ex);
         }
     }
-
+    */
     /*reactionDraft
     public static void getReaction(int comID) {
         int happy = 0, sad = 0, angry = 0, confused = 0, thankful = 0;
