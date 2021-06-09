@@ -688,7 +688,6 @@ public class Main {
                 System.out.println("===========================================================");
                 for (int i = 0; i < issueDescUndo.size(); i++) {
                     System.out.println(issueDescUndo.get(i).toIssueString());
-                    System.out.println("-----------------------------------------------------------");
                 }
                 System.out.println();
                 System.out.println();
@@ -696,7 +695,6 @@ public class Main {
                 System.out.println("===========================================================");
                 for (int i = 0; i < commentUndo.size(); i++) {
                     System.out.println(commentUndo.get(i).toCommentString());
-                    System.out.println("-----------------------------------------------------------");
                 }
                 System.out.println("You can undo and redo your previous change.");
                 System.out.println("1 - Undo");
