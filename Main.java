@@ -21,6 +21,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+
 public class Main {
 
     static List<Project> projects = new ArrayList<>();
@@ -31,7 +32,11 @@ public class Main {
     public static Stack<UndoRedo> issueDescRedo = new Stack<>();
     public static Stack<UndoRedo> commentUndo = new Stack<>();
     public static Stack<UndoRedo> commentRedo = new Stack<>();
-
+    public static Scanner input = new Scanner(System.in);
+    public static DBConnect connection = new DBConnect();
+    public static String comText, timeStamp, userName;
+    public static int issueID, comID, userID, interaction;
+    
     //Setting up JSON READ
     public static void main(String[] args) throws IOException, ParseException, FileNotFoundException {
         JSONArray projectsArr = new JSONArray();
@@ -1112,6 +1117,16 @@ public class Main {
     public static void newTime(int comID) {
         timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new java.util.Date());
     }
+    
+/* main menu segment for comments & reactions *reminder to integrate
+        System.out.println("Enter\n'r' to react \n'c' to comment \n'help' for more commands \nany key to exit");
+        String x = input.nextLine();
+        if (x.equalsIgnoreCase("c")) {
+            inputComment();
+            viewComment();
+        } if (x.equalsIgnoreCase("r")) {
+            inputReaction();
+        }*/
 
     public static void inputComment() {
         System.out.println("Enter: ");
