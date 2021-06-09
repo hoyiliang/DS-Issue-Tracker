@@ -68,6 +68,7 @@ public class Main {
         if (importjsonchoice == 'y' || importjsonchoice == 'Y') {
 
             System.out.print("Specify file path (do \\\\ instead of \\): ");
+            sc.nextLine();
             String filepath = sc.nextLine();
             
             //Read JSON file
