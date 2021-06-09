@@ -162,7 +162,7 @@ public class Main {
                     getUsername = user.getUsername();
                 }
             }
-            System.out.println("Password: ");
+            System.out.print("Password: ");
             String password = sc.nextLine();
             if (password.equals(getPass)) { //Login Success
                 System.out.println("====================== Success! =======================");
