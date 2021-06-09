@@ -954,10 +954,7 @@ public class Main {
                 }
             } else if (choiceAction.equalsIgnoreCase("exit")) {
                 return projectIssues;
-            } else if (choiceAction.equalsIgnoreCase("changes")) {
-                System.out.println("Changes History & Revert: not implemented yet.");
             }
-
 
         } catch (NumberFormatException eee) {
 
