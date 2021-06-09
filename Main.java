@@ -1108,4 +1108,28 @@ public class Main {
         }
         return projectIssues;
     }
+    
+    public static void newTime(int comID) {
+        timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new java.util.Date());
+    }
+
+    public static void inputComment() {
+        System.out.println("Enter: ");
+        comText = input.nextLine();
+        connection.newComment(issueID, userName, comID, comText, timeStamp);
+    }
+
+    public static void viewComment() {
+        System.out.println("");
+        connection.getComment(issueID);
+    }
+
+    public static void inputReaction() {
+        input.nextLine();
+        System.out.println("Which comment are you recating to? *Type in the comID*");
+        comID = input.nextInt();
+        System.out.println("React \n '1' for happy  \n'2' for sad \n'3' for angry \n'4' for confused \n'5' for thankful");
+        interaction = input.nextInt();
+        connection.newReaction(userID, comID, interaction);
+    }
 }
