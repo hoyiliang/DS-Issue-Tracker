@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -57,9 +58,9 @@ public class Main {
             for (int i=1; i<=connection.getUserSize(); i++) {
                 users.add(connection.getUser(i));
                 JSONObject newUser = new JSONObject();
-                    newUser.put("userid", (long) users.get(i).getUserid());
-                    newUser.put("username", (String) users.get(i).getUsername());
-                    newUser.put("password", (String) users.get(i).getPassword());
+                    newUser.put("userid", (long) users.get(i-1).getUserid());
+                    newUser.put("username", (String) users.get(i-1).getUsername());
+                    newUser.put("password", (String) users.get(i-1).getPassword());
                 usersArr.add(newUser);
             }
         }
@@ -77,67 +78,92 @@ public class Main {
                 JSONArray JSONprojectsArr = (JSONArray) jo.get("projects");
                 JSONArray JSONusersArr = (JSONArray) jo.get("users");
                 
-            //Adding JSON Data to runtime
+            //Adding JSON Data to runtime & update SQL data as necessary (Project)
+            if (projects.size() == 0) {
                 for (int i=0; i<JSONprojectsArr.size(); i++) {
                     JSONObject projectIndex = (JSONObject) JSONprojectsArr.get(i);
 
                     long projectID = (long) projectIndex.get("id");
                     String projectName = (String) projectIndex.get("name");
                     issuesArr = (JSONArray) projectIndex.get("issues");
-                    if (projects.size() == 0) {
-                        projectsArr.add(projectIndex);
-                        projects.add(new Project(connection.getProjectSize()+1,projectName,issuesArr));
-                        connection.newProject(connection.getProjectSize()+1, projectName, issuesArr.toJSONString());
-                    } else {
-                        for (int j=0; j<projects.size(); j++) {
-                            if (projectName == projects.get(i).getName()) {
-                                projectsArr.set(j, projectIndex);
-                                projects.set(i, new Project(projects.get(i).getId(),projectName,issuesArr));
-                            } else {
-                                JSONObject newProjectIndex = new JSONObject();
-                                    newProjectIndex.put("id", (long) connection.getProjectSize()+1);
-                                    newProjectIndex.put("name",(String) projectName);
-                                    newProjectIndex.put("issues", (JSONArray) issuesArr);
-                                projectsArr.add(projectIndex);
-                                projects.add(new Project(connection.getProjectSize()+1,projectName,issuesArr));
-                                connection.newProject(connection.getProjectSize()+1, projectName, issuesArr.toJSONString());
-                            }
+                    
+                    projectsArr.add(projectIndex);
+                    projects.add(new Project(projectID, projectName, issuesArr));
+                    connection.newProject(projectID, projectName, issuesArr.toJSONString());
+                }
+            } else {
+                for (int i=0; i<JSONprojectsArr.size(); i++) {
+                    JSONObject projectIndex = (JSONObject) JSONprojectsArr.get(i);
+                    boolean isSameName = false;
+                    
+                    long projectID = (long) projectIndex.get("id");
+                    String projectName = (String) projectIndex.get("name");
+                    issuesArr = (JSONArray) projectIndex.get("issues");
+                    
+                    for (int j=0; j<projects.size(); j++) {
+                        if (projects.get(j).getName().equals(projectName)) {
+                            isSameName = true;
+                            projectsArr.set(j, projectIndex);
+                            projects.set(j, new Project(projectID, projectName, issuesArr));
+                            connection.setProject(projectID, issuesArr.toJSONString());
                         }
                     }
+                    if (isSameName == false) {
+                        JSONObject newprojectIndex = new JSONObject();
+                        projectID = connection.getProjectSize()+1;
+                            newprojectIndex.put("id", (long) projectID);
+                            newprojectIndex.put("name", (String) projectName);
+                            newprojectIndex.put("issues", (JSONArray) issuesArr);
+                        projectsArr.add(newprojectIndex);
+                        projects.add(new Project(projectID, projectName, issuesArr));
+                        connection.newProject(projectID, projectName, issuesArr.toJSONString());
+                    }
                 }
-            
+            }
+                    
+            //Adding JSON Data to runtime & update SQL data as necessary (User)
+            if (users.size() == 0) {
                 for (int i=0; i<JSONusersArr.size(); i++) {
                     JSONObject userIndex = (JSONObject) JSONusersArr.get(i);
-
+                    
                     long userID = (long) userIndex.get("userid");
                     String userName = (String) userIndex.get("username");
                     String password = (String) userIndex.get("password");
-                    if (users.size() == 0) {
-                        usersArr.add(userIndex);
-                        users.add(new User(connection.getUserSize()+1,userName,password));
-                        connection.newUser(connection.getUserSize()+1, userName, password);
-                    } else {
-                        for (int j=0; j<users.size(); j++) {
-                            if (userName == users.get(i).getUsername()) {
-                                usersArr.set(j, userIndex);
-                                users.set(i, new User(users.get(i).getUserid(), userName, password));
-                            } else {
-                                JSONObject newUserIndex = new JSONObject();
-                                    newUserIndex.put("userid", (long) connection.getUserSize()+1);
-                                    newUserIndex.put("username", (String) userName);
-                                    newUserIndex.put("password", (String) password);
-                                usersArr.add(newUserIndex);
-                                users.add(new User(connection.getUserSize()+1,userName,password));
-                                connection.newUser(connection.getUserSize()+1,userName,password);
-                            }
+                    
+                    usersArr.add(userIndex);
+                    users.add(new User(userID, userName, password));
+                    connection.newUser(userID, userName, password);
+                    
+                }
+            } else {
+                for (int i=0; i<JSONusersArr.size(); i++) {
+                    JSONObject userIndex = (JSONObject) JSONusersArr.get(i);
+                    boolean isSameUser = false;
+                    
+                    long userID = (long) userIndex.get("userid");
+                    String userName = (String) userIndex.get("username");
+                    String password = (String) userIndex.get("password");
+                    
+                    for (int j=0; j<users.size(); j++) {
+                        if (users.get(j).getUsername().equals(userName)) {
+                            isSameUser = true;
+                            System.out.println("No user information has been changed due to security.");
                         }
                     }
+                    if (isSameUser == false) {
+                        JSONObject newuserIndex = new JSONObject();
+                        userID = connection.getUserSize()+1;
+                            newuserIndex.put("userid", userID);
+                            newuserIndex.put("username", userName);
+                            newuserIndex.put("password", password);
+                        usersArr.add(newuserIndex);
+                        users.add(new User(userID, userName, password));
+                        connection.newUser(userID, userName, password);
+                    }
                 }
-
+            }
             loginInterface(usersArr , projectsArr);
-        } else {
-            loginInterface(usersArr, projectsArr);
-        }
+        } else { loginInterface(usersArr, projectsArr); }
     }
 
     // Visible runtime START
@@ -251,11 +277,11 @@ public class Main {
             connection.setProject(projectSel-1, projectIssues.toJSONString());
 
                 // Add project data in json syntax
-                JSONObject newProject = new JSONObject();
-                newProject.put("id", (long) id);
-                newProject.put("name", (String) projectName);
-                newProject.put("issues", (JSONArray) projectIssues);
-                projectsArr.set(projectSel-1, newProject);
+                JSONObject newProjectIndex = new JSONObject();
+                newProjectIndex.put("id", (long) id);
+                newProjectIndex.put("name", (String) projectName);
+                newProjectIndex.put("issues", (JSONArray) projectIssues);
+                projectsArr.set(projectSel-1, newProjectIndex);
 
                 return projectsArr;
 
@@ -292,7 +318,6 @@ public class Main {
 
     // Contains all about issues
     public static JSONArray issueCore(Project specificProject, User programUser, int recurseCheck) {
-        Scanner sc = new Scanner(System.in);
         JSONArray projectIssues = specificProject.getIssuesArr();
 
         if (recurseCheck == 0) {
@@ -335,14 +360,16 @@ public class Main {
             } else if (sortPref.equalsIgnoreCase("1")) {
                 UnSortedIssues.sort(Comparator.comparingLong(Issue::getPriority).reversed());
                 sortCheck = 1;
+            } else if (sortPref.equalsIgnoreCase("")) {
+
             } else {}
 
             // Print with Sorted (if necessary)
             if (sortCheck == 1) {
                 System.out.println("Issue board");
-                System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+");
-                System.out.format("| ID |          Title          |   Status    |   Tag    | Priority |       Time       | Assignee | CreatedBy  |");
-                System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+");
+                System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+\n");
+                System.out.format("| ID |          Title          |   Status    |   Tag    | Priority |       Time       | Assignee | CreatedBy  |\n");
+                System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+\n");
                 // List Issues
                 for (int i = 0; i < UnSortedIssues.size(); i++) {
                     SimpleDateFormat FormatPattern = new SimpleDateFormat("yyyy/MM/dd hh:mm");
@@ -379,7 +406,6 @@ public class Main {
 
     public static JSONArray issuePage(Project specificProject, User programUser, String issueInput, JSONArray projectIssues) {
         //Issue page
-        Scanner sc = new Scanner(System.in);
         try {
 
             int issueSel = Integer.parseInt(issueInput)-1;
@@ -395,7 +421,7 @@ public class Main {
             System.out.println("======================================================================");
             System.out.println("Assigned to: " +specificProject.getIssues().get(issueSel).getAssignee() +"\t\t\tCreated by: " +specificProject.getIssues().get(issueSel).getCreatedBy() +"\n");
             System.out.println("Issue Description\n-----------------");
-            System.out.println(specificProject.getIssues().get(issueSel).getDescriptionText() +"\n");
+            System.out.format(specificProject.getIssues().get(issueSel).getDescriptionText() +"\n");
             System.out.println("Comments\n---------");
             for (int i=0; i<specificProject.getIssues().get(issueSel).getComments().size(); i++) {
                 System.out.println("#"+specificProject.getIssues().get(issueSel).getComments().get(i).getCommentId() +"\tCreated on: "+FormatPattern.format(specificProject.getIssues().get(issueSel).getComments().get(i).getTimestamp()) +"\tBy: "+specificProject.getIssues().get(issueSel).getComments().get(i).getUser());
@@ -429,7 +455,8 @@ public class Main {
             System.out.println("'c' to comment");
             System.out.println("or 'help' for more commands: ");
             System.out.print("Input: ");
-            String choiceAction = sc.next();
+            sc.nextLine();
+            String choiceAction = sc.nextLine();
             if (choiceAction.equalsIgnoreCase("r")) {
                 System.out.println("Which comment you want to react?");
                 System.out.print("Enter comment ID: ");
@@ -483,6 +510,7 @@ public class Main {
                 System.out.println("Enter your comment text: \nHint: Use escape characters like backslash t or n to apply formatting for display\n");
                 sc.nextLine();
                 String newText = sc.nextLine();
+                newText = StringEscapeUtils.unescapeJava(newText);
                 JSONArray newReactArr = new JSONArray();
                 ////////////////////////////////////////////////////////
                 JSONObject newReactAngry = new JSONObject();
@@ -522,6 +550,8 @@ public class Main {
                 newIssueIndex.put("timestamp", (long) specificProject.getIssues().get(issueSel).getTimestampUndated());
                 newIssueIndex.put("comments", (JSONArray) commentsArr);
                 projectIssues.set(issueSel, newIssueIndex);
+
+                specificProject.getIssues().get(issueSel).getComments().add(new Comment(newCommentID, newText, newReactArr, newTimestampUndated, user));
 
                 System.out.println("Comment successfully posted.");
                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
@@ -684,8 +714,98 @@ public class Main {
                     return projectIssues;
                 }
 
-            }else if (choiceAction.equalsIgnoreCase("change")) {
-                System.out.println("Edit history of issue description");
+            } else if (choiceAction.equalsIgnoreCase("edit")) {
+                System.out.println("What do you want to edit in this issue?");
+                System.out.println("1-Issue Desc, 2-Comments");
+                int choiceEdit = sc.nextInt();
+                if (choiceEdit == 1) {
+                    if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername())) {
+                        issueDescRedo.clear();
+                        System.out.println("Original Issue Description\n--------------------------");
+                        System.out.println(specificProject.getIssues().get(issueSel).getDescriptionText());
+                        String old = specificProject.getIssues().get(issueSel).getDescriptionText();
+                        System.out.println("------------------------------------------------------------");
+                        System.out.println("Your desired new description text: \n(Hint!: You can copy the original text from this terminal and paste in your input for easy editing)\n(Hint!: escape characters like backslash t or n can be used)\n");
+                        sc.nextLine();
+                        String newDescText = sc.nextLine();
+                        newDescText = StringEscapeUtils.unescapeJava(newDescText);
+                        String newIssueDesc = sc.nextLine();
+                        specificProject.getIssues().get(issueSel).setDescriptionText(newIssueDesc);
+                        issueDescUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), old, newIssueDesc));
+
+                        JSONObject newIssueIndex = new JSONObject();
+                            newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
+                            newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
+                            newIssueIndex.put("priority", (long) specificProject.getIssues().get(issueSel).getPriority());
+                            newIssueIndex.put("status", (String) specificProject.getIssues().get(issueSel).getStatus());
+                            newIssueIndex.put("tag", (JSONArray) specificProject.getIssues().get(issueSel).getTag());
+                            newIssueIndex.put("descriptionText", (String) specificProject.getIssues().get(issueSel).getDescriptionText());
+                            newIssueIndex.put("createdBy", (String) specificProject.getIssues().get(issueSel).getCreatedBy());
+                            newIssueIndex.put("assignee", (String) specificProject.getIssues().get(issueSel).getAssignee());
+                            newIssueIndex.put("timestamp", (long) specificProject.getIssues().get(issueSel).getTimestampUndated());
+                            newIssueIndex.put("comments", (JSONArray) commentsArr);
+                        projectIssues.set(issueSel, newIssueIndex);
+
+                        System.out.println("Editing successful.");
+                        projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
+                        return projectIssues;
+
+                    } else {
+                        System.out.println("You do not have permission. (not issue owner)");
+                        projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
+                        return projectIssues;
+                    }
+                } else if (choiceEdit == 2) {
+                    System.out.println("Which comment you want to edit? (only comment belongs to yours is allowed)");
+                    System.out.print("Comment ID: ");
+                    int editCmtID = sc.nextInt()-1;
+                    if (specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getUser().equals(programUser.getUsername())) {
+                        commentRedo.clear();
+                        System.out.println("Original comment text\n---------------------");
+                        System.out.println(specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText());
+                        String oldComment = specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText();
+                        System.out.println("------------------------------------------------------------------------------");
+                        System.out.println("Your desired new comment text: \n(Hint!: You can copy the original text from this terminal and paste in your input for easy editing)\n(Hint!: escape characters like backslash t or n can be used)\n");
+                        sc.nextLine();
+                        String newCmtText = sc.nextLine();
+                        newCmtText = StringEscapeUtils.unescapeJava(newCmtText);
+                        specificProject.getIssues().get(issueSel).getComments().get(editCmtID).setText(newCmtText);
+                        commentUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), editCmtID, oldComment, newCmtText));
+
+                        JSONObject newCommentIndex = new JSONObject();
+                            newCommentIndex.put("comment_id", (long) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getCommentId() );
+                            newCommentIndex.put("text", (String) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText() );
+                            newCommentIndex.put("react", (JSONArray) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getReactArr() );
+                            newCommentIndex.put("timestamp", (long) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getTimestampUndated() );
+                            newCommentIndex.put("user", (String) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getUser() );
+                        commentsArr.add(newCommentIndex);
+
+                        JSONObject newIssueIndex = new JSONObject();
+                            newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
+                            newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
+                            newIssueIndex.put("priority", (long) specificProject.getIssues().get(issueSel).getPriority());
+                            newIssueIndex.put("status", (String) specificProject.getIssues().get(issueSel).getStatus());
+                            newIssueIndex.put("tag", (JSONArray) specificProject.getIssues().get(issueSel).getTag());
+                            newIssueIndex.put("descriptionText", (String) specificProject.getIssues().get(issueSel).getDescriptionText());
+                            newIssueIndex.put("createdBy", (String) specificProject.getIssues().get(issueSel).getCreatedBy());
+                            newIssueIndex.put("assignee", (String) specificProject.getIssues().get(issueSel).getAssignee());
+                            newIssueIndex.put("timestamp", (long) specificProject.getIssues().get(issueSel).getTimestampUndated());
+                            newIssueIndex.put("comments", (JSONArray) commentsArr);
+                        projectIssues.set(issueSel, newIssueIndex);
+
+                        System.out.println("Editing successful.");
+                        projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
+                        return projectIssues;
+                    }
+                } else {
+                    System.out.println("Invalid choice!");
+                    projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
+                    return projectIssues;
+                }
+            } else if (choiceAction.equalsIgnoreCase("exit")) {
+                return projectIssues;
+            } else if (choiceAction.equalsIgnoreCase("changes")) {
+                                System.out.println("Edit history of issue description");
                 System.out.println("===========================================================");
                 for (int i = 0; i < issueDescUndo.size(); i++) {
                     System.out.println(issueDescUndo.get(i).toIssueString());
@@ -866,95 +986,8 @@ public class Main {
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 } 
-            
-            }else if (choiceAction.equalsIgnoreCase("edit")) {
-                System.out.println("What do you want to edit in this issue?");
-                System.out.println("1-Issue Desc, 2-Comments");
-                int choiceEdit = sc.nextInt();
-                if (choiceEdit == 1) {
-                    if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername())) {
-                        issueDescRedo.clear();
-                        System.out.println("Original Issue Description\n--------------------------");
-                        System.out.println(specificProject.getIssues().get(issueSel).getDescriptionText());
-                        String old = specificProject.getIssues().get(issueSel).getDescriptionText();
-                        System.out.println("------------------------------------------------------------");
-                        System.out.println("Your desired new description text: \n(Hint!: You can copy the original text from this terminal and paste in your input for easy editing)\n(Hint!: escape characters like backslash t or n can be used)\n");
-                        sc.nextLine();
-                        String newIssueDesc = sc.nextLine();
-                        specificProject.getIssues().get(issueSel).setDescriptionText(newIssueDesc);
-                        issueDescUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), old, newIssueDesc));
-
-                        JSONObject newIssueIndex = new JSONObject();
-                        newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
-                        newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
-                        newIssueIndex.put("priority", (long) specificProject.getIssues().get(issueSel).getPriority());
-                        newIssueIndex.put("status", (String) specificProject.getIssues().get(issueSel).getStatus());
-                        newIssueIndex.put("tag", (JSONArray) specificProject.getIssues().get(issueSel).getTag());
-                        newIssueIndex.put("descriptionText", (String) specificProject.getIssues().get(issueSel).getDescriptionText());
-                        newIssueIndex.put("createdBy", (String) specificProject.getIssues().get(issueSel).getCreatedBy());
-                        newIssueIndex.put("assignee", (String) specificProject.getIssues().get(issueSel).getAssignee());
-                        newIssueIndex.put("timestamp", (long) specificProject.getIssues().get(issueSel).getTimestampUndated());
-                        newIssueIndex.put("comments", (JSONArray) commentsArr);
-                        projectIssues.set(issueSel, newIssueIndex);
-
-                        System.out.println("Editing successful.");
-                        projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
-                        return projectIssues;
-
-                    } else {
-                        System.out.println("You do not have permission. (not issue owner)");
-                        projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
-                        return projectIssues;
-                    }
-                } else if (choiceEdit == 2) {
-                    System.out.println("Which comment you want to edit? (only comment belongs to yours is allowed)");
-                    System.out.print("Comment ID: ");
-                    int editCmtID = sc.nextInt() - 1;
-                    if (specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getUser().equals(programUser.getUsername())) {
-                        commentRedo.clear();
-                        System.out.println("Original comment text\n---------------------");
-                        System.out.println(specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText());
-                        String oldComment = specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText();
-                        System.out.println("------------------------------------------------------------------------------");
-                        System.out.println("Your desired new comment text: \n(Hint!: You can copy the original text from this terminal and paste in your input for easy editing)\n(Hint!: escape characters like backslash t or n can be used)\n");
-                        sc.nextLine();
-                        String newCmtText = sc.nextLine();
-                        specificProject.getIssues().get(issueSel).getComments().get(editCmtID).setText(newCmtText);
-                        commentUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), editCmtID, oldComment, newCmtText));
-
-                        JSONObject newCommentIndex = new JSONObject();
-                        newCommentIndex.put("comment_id", (long) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getCommentId());
-                        newCommentIndex.put("text", (String) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText());
-                        newCommentIndex.put("react", (JSONArray) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getReactArr());
-                        newCommentIndex.put("timestamp", (long) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getTimestampUndated());
-                        newCommentIndex.put("user", (String) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getUser());
-                        commentsArr.set(editCmtID, newCommentIndex);
-
-                        JSONObject newIssueIndex = new JSONObject();
-                        newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
-                        newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
-                        newIssueIndex.put("priority", (long) specificProject.getIssues().get(issueSel).getPriority());
-                        newIssueIndex.put("status", (String) specificProject.getIssues().get(issueSel).getStatus());
-                        newIssueIndex.put("tag", (JSONArray) specificProject.getIssues().get(issueSel).getTag());
-                        newIssueIndex.put("descriptionText", (String) specificProject.getIssues().get(issueSel).getDescriptionText());
-                        newIssueIndex.put("createdBy", (String) specificProject.getIssues().get(issueSel).getCreatedBy());
-                        newIssueIndex.put("assignee", (String) specificProject.getIssues().get(issueSel).getAssignee());
-                        newIssueIndex.put("timestamp", (long) specificProject.getIssues().get(issueSel).getTimestampUndated());
-                        newIssueIndex.put("comments", (JSONArray) commentsArr);
-                        projectIssues.set(issueSel, newIssueIndex);
-
-                        System.out.println("Editing successful.");
-                        projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
-                        return projectIssues;
-                    }
-                } else {
-                    System.out.println("Invalid choice!");
-                    projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
-                    return projectIssues;
-                }
-            } else if (choiceAction.equalsIgnoreCase("exit")) {
-                return projectIssues;
             }
+
 
         } catch (NumberFormatException eee) {
 
@@ -980,7 +1013,7 @@ public class Main {
                 int priority = sc.nextInt();
                 long timestamp = Instant.now().getEpochSecond();
                 String createdBy = programUser.getUsername();
-                System.out.print("Available assignees:");
+                System.out.println("Available assignees:");
                 String alignFormatLeft = "| %-2d | %-16s |%n";
                 System.out.println("+----+------------------+");
                 System.out.println("| ID |     Username     |");
@@ -997,6 +1030,7 @@ public class Main {
                 System.out.println("Description of the issue: \n(Hint!: escape characters like backslash t or n can be used)\n");
                 sc.nextLine();
                 String descText = sc.nextLine();
+                descText = StringEscapeUtils.unescapeJava(descText);
 
                 JSONObject newIssueIndex = new JSONObject();
                     newIssueIndex.put("id", (long) id);
@@ -1011,37 +1045,14 @@ public class Main {
                     newIssueIndex.put("comments", (JSONArray) comments);
                 projectIssues.add(newIssueIndex);
 
+                specificProject.getIssues().add(new Issue(id, title, priority, status, Tags, descText, createdBy, Assignee, timestampUndated, comments));
+
                 System.out.println("Issue created successfully.");
+                projectIssues = issueCore(specificProject, programUser, 1);
+                return projectIssues;
             }
 
         }
         return projectIssues;
-    }
-
-
-
-//codes related to comments and reaction @wy
-    public static void newTime(int comID) {
-        timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new java.util.Date());
-    }
-
-    public static void inputComment() {
-        System.out.println("Enter: ");
-        comText = input.nextLine();
-        connection.newComment(issueID, userName, comID, comText, timeStamp);
-    }
-
-    public static void viewComment() {
-        System.out.println("");
-        connection.getComment(issueID);
-    }
-
-    public static void inputReaction() {
-        input.nextLine();
-        System.out.println("Which comment are you recating to? *Type in the comID*");
-        comID = input.nextInt();
-        System.out.println("React \n '1' for happy  \n'2' for sad \n'3' for angry \n'4' for confused \n'5' for thankful");
-        interaction = input.nextInt();
-        connection.newReaction(userID, comID, interaction);
     }
 }
