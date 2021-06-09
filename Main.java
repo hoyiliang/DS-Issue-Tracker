@@ -15,12 +15,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
 
 public class Main {
 
@@ -32,11 +31,7 @@ public class Main {
     public static Stack<UndoRedo> issueDescRedo = new Stack<>();
     public static Stack<UndoRedo> commentUndo = new Stack<>();
     public static Stack<UndoRedo> commentRedo = new Stack<>();
-    public static Scanner input = new Scanner(System.in);
-    public static DBConnect connection = new DBConnect();
-    public static String comText, timeStamp, userName;
-    public static int issueID, comID, userID, interaction;
-    
+
     //Setting up JSON READ
     public static void main(String[] args) throws IOException, ParseException, FileNotFoundException {
         JSONArray projectsArr = new JSONArray();
@@ -231,7 +226,7 @@ public class Main {
                     for (int j = 0; j < projects.get(i).getIssuesArr().size(); j++) {
                         if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("open")) {
                             open++;
-                        } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("resolve")) {
+                        } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("resolved")) {
                             resolve++;
                         } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("In Progress")) {
                             inProgress++;
@@ -244,7 +239,7 @@ public class Main {
                     System.out.format("| Status Category | Issue |%n");
                     System.out.format("+-----------------+-------+%n");
                     System.out.format(alignFormat, "Open", open);
-                    System.out.format(alignFormat, "Resolve", resolve);
+                    System.out.format(alignFormat, "Resolved", resolve);
                     System.out.format(alignFormat, "In progress", inProgress);
                     System.out.format(alignFormat, "Closed", closed);
                     System.out.format("+-----------------+-------+%n");
@@ -786,9 +781,8 @@ public class Main {
                         String old = specificProject.getIssues().get(issueSel).getDescriptionText();
                         System.out.println("------------------------------------------------------------");
                         System.out.println("Your desired new description text: \n(Hint!: You can copy the original text from this terminal and paste in your input for easy editing)\n(Hint!: escape characters like backslash t or n can be used)\n");
-                        sc.nextLine();
-                        //String newDescText = sc.nextLine();
-                        //newDescText = StringEscapeUtils.unescapeJava(newDescText);
+                        String newDescText = sc.nextLine();
+                        newDescText = StringEscapeUtils.unescapeJava(newDescText);
                         String newIssueDesc = sc.nextLine();
                         specificProject.getIssues().get(issueSel).setDescriptionText(newIssueDesc);
                         issueDescUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), old, newIssueDesc));
@@ -826,9 +820,8 @@ public class Main {
                         String oldComment = specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText();
                         System.out.println("------------------------------------------------------------------------------");
                         System.out.println("Your desired new comment text: \n(Hint!: You can copy the original text from this terminal and paste in your input for easy editing)\n(Hint!: escape characters like backslash t or n can be used)\n");
-                        sc.nextLine();
                         String newCmtText = sc.nextLine();
-                        //newCmtText = StringEscapeUtils.unescapeJava(newCmtText);
+                        newCmtText = StringEscapeUtils.unescapeJava(newCmtText);
                         specificProject.getIssues().get(issueSel).getComments().get(editCmtID).setText(newCmtText);
                         commentUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), editCmtID, oldComment, newCmtText));
 
@@ -862,8 +855,7 @@ public class Main {
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
-            } else if (choiceAction.equalsIgnoreCase("exit")) {
-                return projectIssues;
+
             } else if (choiceAction.equalsIgnoreCase("changes")) {
                 System.out.println("Edit history of issue description");
                 System.out.println("===========================================================");
@@ -1042,6 +1034,8 @@ public class Main {
                             return projectIssues;
                         }
                     }
+                } else if (choiceAction.equalsIgnoreCase("exit")) {
+                    return projectIssues;
                 } else {
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
@@ -1112,39 +1106,5 @@ public class Main {
 
         }
         return projectIssues;
-    }
-    
-    public static void newTime(int comID) {
-        timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new java.util.Date());
-    }
-    
-/* main menu segment for comments & reactions *reminder to integrate
-        System.out.println("Enter\n'r' to react \n'c' to comment \n'help' for more commands \nany key to exit");
-        String x = input.nextLine();
-        if (x.equalsIgnoreCase("c")) {
-            inputComment();
-            viewComment();
-        } if (x.equalsIgnoreCase("r")) {
-            inputReaction();
-        }*/
-
-    public static void inputComment() {
-        System.out.println("Enter: ");
-        comText = input.nextLine();
-        connection.newComment(issueID, userName, comID, comText, timeStamp);
-    }
-
-    public static void viewComment() {
-        System.out.println("");
-        connection.getComment(issueID);
-    }
-
-    public static void inputReaction() {
-        input.nextLine();
-        System.out.println("Which comment are you recating to? *Type in the comID*");
-        comID = input.nextInt();
-        System.out.println("React \n '1' for happy  \n'2' for sad \n'3' for angry \n'4' for confused \n'5' for thankful");
-        interaction = input.nextInt();
-        connection.newReaction(userID, comID, interaction);
     }
 }
