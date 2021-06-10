@@ -1,5 +1,8 @@
 package DSPack;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class UndoRedo {
     private int proId;
     private String projectName;
@@ -10,13 +13,13 @@ public class UndoRedo {
     private int commentId;
     private String oldComment;
     private String newComment;
-    private long time;
+    private String time;
 
 
     public UndoRedo() {
     }
 
-    public UndoRedo(int proId, String projectName, int issueId, String issueName, String oldIssueDesc, String newIssueDesc, long time) {
+    public UndoRedo(int proId, String projectName, int issueId, String issueName, String oldIssueDesc, String newIssueDesc, String time) {
         this.proId = proId;
         this.projectName = projectName;
         this.issueId = issueId;
@@ -26,7 +29,7 @@ public class UndoRedo {
         this.time = time;
     }
 
-    public UndoRedo(int proId, String projectName, int issueId, String issueName, int commentId, String oldComment, String newComment, long time) {
+    public UndoRedo(int proId, String projectName, int issueId, String issueName, int commentId, String oldComment, String newComment, String time) {
         this.proId = proId;
         this.projectName = projectName;
         this.issueId = issueId;
@@ -65,15 +68,16 @@ public class UndoRedo {
         return newComment;
     }
 
-    public long getTime() {
+    public String getTime() {
         return time;
     }
-    
+
     public String toIssueString() {
         return "Project Name: " + getProjectName() + "\n" +
                 "Issue: " + getIssueName() + "\n" +
                 "Old Issue Description: " + getOldIssueDesc() + "\n" +
                 "Edited Issue Description: " + getNewIssueDesc() + "\n" +
+                "Time Edited: " + getTime() + "\n" +
                 "-----------------------------------------------------------";
     }
 
@@ -82,6 +86,7 @@ public class UndoRedo {
                 "Issue: " + getIssueName() + "\n" +
                 "Old Comment: " + getOldComment() + "\n" +
                 "Edited Comment: " + getNewComment() + "\n" +
+                "Time Edited: " + getTime() + "\n" +
                 "-----------------------------------------------------------";
     }
 }
