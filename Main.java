@@ -1,4 +1,4 @@
-package javaapplication1;
+package DSPack;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -11,11 +11,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 import java.text.SimpleDateFormat;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -207,14 +208,21 @@ public class Main {
                         newChangelog.put("issue_name", issueDescUndo.peek().getIssueName());
                         newChangelog.put("previous_description", issueDescUndo.peek().getOldIssueDesc());
                         newChangelog.put("edited_description", issueDescUndo.peek().getNewIssueDesc());
+                        newChangelog.put("comment_id", null);
+                        newChangelog.put("previous_comment", null);
+                        newChangelog.put("edited_comment", null);
+                        newChangelog.put("timestamp", issueDescUndo.peek().getTime());
                         changeArr.add(newChangelog);
                         issueDescUndo.pop();
                     } else {
                         newChangelog.put("project_name", commentUndo.peek().getProjectName());
                         newChangelog.put("issue_name", commentUndo.peek().getIssueName());
+                        newChangelog.put("previous_description", null);
+                        newChangelog.put("edited_description", null);
                         newChangelog.put("comment_id", commentUndo.peek().getCommentId());
                         newChangelog.put("previous_comment", commentUndo.peek().getOldComment());
                         newChangelog.put("edited_comment", commentUndo.peek().getNewComment());
+                        newChangelog.put("timestamp", commentUndo.peek().getTime());
                         changeArr.add(newChangelog);
                         commentUndo.pop();
                     }
@@ -303,7 +311,7 @@ public class Main {
 
     public static JSONArray projectBoard(JSONArray projectsArr, User programUser, int recurseCheck) {
 
-        if (recurseCheck == 0) { 
+        if (recurseCheck == 0) {
             return projectsArr;
         } else {
             String alignFormatLeft = "| %-2d | %-16s | %-6d |%n";
@@ -313,7 +321,7 @@ public class Main {
             System.out.format("| ID |   Project Name   | Issues |%n");
             System.out.format("+----+------------------+--------+%n");
             // List projects
-            for (int i=0; i<projects.size(); i++) {
+            for (int i = 0; i < projects.size(); i++) {
                 System.out.format(alignFormatLeft, projects.get(i).getId(), projects.get(i).getName(), projects.get(i).getIssues().size());
             }
             System.out.format("+----+------------------+--------+%n");
@@ -328,10 +336,10 @@ public class Main {
             // Search or Create new?
             try {
 
-                int projectSel = Integer.parseInt(input)-1;
+                int projectSel = Integer.parseInt(input) - 1;
                 boolean confirmExitIssueCore = false;
-                JSONArray projectIssues = issueCore(projects.get(projectSel), programUser,1);
-                
+                JSONArray projectIssues = issueCore(projects.get(projectSel), programUser, 1);
+
                 // Recurse patch to exit to ProjectBoard
                 while (confirmExitIssueCore == false) {
                     System.out.print("Confirm save changes and exit to Project Board? (y/n): ");
@@ -339,7 +347,7 @@ public class Main {
                     if (confirmation == 'y') {
                         confirmExitIssueCore = true;
                     } else {
-                        projectIssues = issueCore(projects.get(projectSel), programUser,1);
+                        projectIssues = issueCore(projects.get(projectSel), programUser, 1);
                     }
                 }
 
@@ -349,15 +357,15 @@ public class Main {
                 projects.set(projectSel, modifiedProjectIndex);
                 connection.setProject(projectSel, projectIssues.toJSONString());
 
-                    // Add project data in json syntax
-                    JSONObject newProjectIndex = new JSONObject();
-                    newProjectIndex.put("id", (long) id);
-                    newProjectIndex.put("name", (String) projectName);
-                    newProjectIndex.put("issues", (JSONArray) projectIssues);
-                    projectsArr.set(projectSel-1, newProjectIndex);
+                // Add project data in json syntax
+                JSONObject newProjectIndex = new JSONObject();
+                newProjectIndex.put("id", (long) id);
+                newProjectIndex.put("name", (String) projectName);
+                newProjectIndex.put("issues", (JSONArray) projectIssues);
+                projectsArr.set(projectSel, newProjectIndex);
 
-                    projectsArr = projectBoard(projectsArr, programUser, recurseCheck);
-                    return projectsArr;
+                projectsArr = projectBoard(projectsArr, programUser, recurseCheck);
+                return projectsArr;
 
             } catch (NumberFormatException e) {
                 // Create new project
@@ -371,7 +379,7 @@ public class Main {
                     // Add project data in runtime
                     projects.add(new Project(id, projectName, projectIssues));
                     // Recursion issueBoard START
-                    projectIssues = issueCore(projects.get(projects.size()-1), programUser,1);
+                    projectIssues = issueCore(projects.get(projects.size() - 1), programUser, 1);
 
                     // Add project data in json syntax
                     JSONObject newProject = new JSONObject();
@@ -379,8 +387,8 @@ public class Main {
                     newProject.put("name", (String) projectName);
                     newProject.put("issues", (JSONArray) projectIssues);
                     projectsArr.add(newProject);
-                    connection.newProject(connection.getProjectSize()+1, projectName, projectIssues.toJSONString());
-                    
+                    connection.newProject(connection.getProjectSize() + 1, projectName, projectIssues.toJSONString());
+
                     // Recursing projectBoard
                     projectsArr = projectBoard(projectsArr, programUser, recurseCheck);
 
@@ -402,13 +410,13 @@ public class Main {
         if (recurseCheck == 0) {
             return projectIssues;
         } else {
-            String alignFormatLeft = "| %-2d | %-23s | %-11s | %-8s | %-8d | %-16s | %-8s | %-10s |%n";
+            String alignFormatLeft = "| %-2d | %-32s | %-11s | %-18s | %-8d | %-16s | %-8s | %-10s |%n";
             // Issue board
-            String multipleTagsAlign = "|    |                         |             | %-8s |          |                  |          |            |%n";
+            String multipleTagsAlign = "|    |                                  |             | %-18s |          |                  |          |            |%n";
             System.out.println("Issue board");
-            System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+%n");
-            System.out.format("| ID |          Title          |   Status    |   Tag    | Priority |       Time       | Assignee | CreatedBy  |%n");
-            System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+%n");
+            System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+%n");
+            System.out.format("| ID |              Title               |   Status    |        Tag         | Priority |       Time       | Assignee | CreatedBy  |%n");
+            System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+%n");
             // List Issues
             for (int i = 0; i < specificProject.getIssues().size(); i++) {
                 SimpleDateFormat FormatPattern = new SimpleDateFormat("yyyy/MM/dd hh:mm");
@@ -418,10 +426,10 @@ public class Main {
                     for (int j = 1; j < specificProject.getIssues().get(i).getTags().size(); j++) {
                         System.out.format(multipleTagsAlign, specificProject.getIssues().get(i).getTags().get(j));
                     }
-                    System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+%n");
+                    System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+%n");
                 } else {
                     System.out.format(alignFormatLeft, specificProject.getIssues().get(i).getId(), specificProject.getIssues().get(i).getTitle(), specificProject.getIssues().get(i).getStatus(), specificProject.getIssues().get(i).getTags().get(0), specificProject.getIssues().get(i).getPriority(), datetimeFormatted, specificProject.getIssues().get(i).getAssignee(), specificProject.getIssues().get(i).getCreatedBy());
-                    System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+%n");
+                    System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+%n");
                 }
             }
 
@@ -431,7 +439,8 @@ public class Main {
             System.out.println("otherwise - Default sorting by ID (Use the board above)");
             System.out.print("Your choice: ");
             int sortCheck = 0;
-            String sortPref = sc.next();
+            sc.nextLine();
+            String sortPref = sc.nextLine();
             ArrayList<Issue> UnSortedIssues = specificProject.getIssues();
             if (sortPref.equalsIgnoreCase("2")) {
                 UnSortedIssues.sort(Comparator.comparingLong(Issue::getTimestampUndated).reversed());
@@ -447,9 +456,9 @@ public class Main {
             // Print with Sorted (if necessary)
             if (sortCheck == 1) {
                 System.out.println("Issue board");
-                System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+\n");
-                System.out.format("| ID |          Title          |   Status    |   Tag    | Priority |       Time       | Assignee | CreatedBy  |\n");
-                System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+\n");
+                System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
+                System.out.format("| ID |              Title               |   Status    |        Tag         | Priority |       Time       | Assignee | CreatedBy  |\n");
+                System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
                 // List Issues
                 for (int i = 0; i < UnSortedIssues.size(); i++) {
                     SimpleDateFormat FormatPattern = new SimpleDateFormat("yyyy/MM/dd hh:mm");
@@ -459,10 +468,10 @@ public class Main {
                         for (int j = 1; j < UnSortedIssues.get(i).getTags().size(); j++) {
                             System.out.format(multipleTagsAlign, UnSortedIssues.get(i).getTags().get(j));
                         }
-                        System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+");
+                        System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
                     } else {
                         System.out.format(alignFormatLeft, UnSortedIssues.get(i).getId(), UnSortedIssues.get(i).getTitle(), UnSortedIssues.get(i).getStatus(), UnSortedIssues.get(i).getTags().get(0), UnSortedIssues.get(i).getPriority(), datetimeFormatted, UnSortedIssues.get(i).getAssignee(), UnSortedIssues.get(i).getCreatedBy());
-                        System.out.format("+----+-------------------------+-------------+----------+----------+------------------+----------+------------+");
+                        System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
                     }
                 }
             }
@@ -473,7 +482,7 @@ public class Main {
             System.out.println("or 'c' to create issue");
             System.out.println("or 'exit' to logout and shutdown the program");
             System.out.print("Input: ");
-            String issueInput = sc.next();
+            String issueInput = sc.nextLine();
 
             if (issueInput.equalsIgnoreCase("exit")) {
                 recurseCheck = 0;
@@ -535,7 +544,7 @@ public class Main {
             System.out.println("'c' to comment");
             System.out.println("or 'help' for more commands: ");
             System.out.print("Input: ");
-            sc.nextLine();
+            //sc.nextLine();
             String choiceAction = sc.nextLine();
             if (choiceAction.equalsIgnoreCase("r")) {
                 System.out.println("Which comment you want to react?");
@@ -654,6 +663,7 @@ public class Main {
 
                 System.out.print("Press enter to continue...");
                 sc.nextLine();
+                sc.nextLine();
                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                 return projectIssues;
 
@@ -667,7 +677,8 @@ public class Main {
                         if (specificProject.getIssues().get(issueSel).getStatus().equals("Closed")) {
                             System.out.println("Reopening Issue...");
                             specificProject.getIssues().get(issueSel).setStatus("Reopened");
-                            System.out.println("Issue status set to: Reopened");;
+                            System.out.println("Issue status set to: Reopened");
+                            ;
                         } else {
                             specificProject.getIssues().get(issueSel).setStatus("Open");
                             System.out.println("Issue status set to: Open");
@@ -795,6 +806,7 @@ public class Main {
                 }
 
             } else if (choiceAction.equalsIgnoreCase("edit")) {
+                long editedTime = Instant.now().getEpochSecond();
                 System.out.println("What do you want to edit in this issue?");
                 System.out.println("1-Issue Desc, 2-Comments");
                 int choiceEdit = sc.nextInt();
@@ -810,7 +822,7 @@ public class Main {
                         newDescText = StringEscapeUtils.unescapeJava(newDescText);
                         String newIssueDesc = sc.nextLine();
                         specificProject.getIssues().get(issueSel).setDescriptionText(newIssueDesc);
-                        issueDescUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), old, newIssueDesc));
+                        issueDescUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), old, newIssueDesc, editedTime));
 
                         JSONObject newIssueIndex = new JSONObject();
                         newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
@@ -848,7 +860,7 @@ public class Main {
                         String newCmtText = sc.nextLine();
                         newCmtText = StringEscapeUtils.unescapeJava(newCmtText);
                         specificProject.getIssues().get(issueSel).getComments().get(editCmtID).setText(newCmtText);
-                        commentUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), editCmtID, oldComment, newCmtText));
+                        commentUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), editCmtID, oldComment, newCmtText, editedTime));
 
                         JSONObject newCommentIndex = new JSONObject();
                         newCommentIndex.put("comment_id", (long) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getCommentId());
@@ -933,6 +945,7 @@ public class Main {
                             return projectIssues;
                         } else {
                             System.out.println("You have nothing to undo");
+                            sc.nextLine();
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
                         }
@@ -975,6 +988,7 @@ public class Main {
                             return projectIssues;
                         } else {
                             System.out.println("You have nothing to undo");
+                            sc.nextLine();
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
                         }
@@ -1013,6 +1027,7 @@ public class Main {
 
                         } else {
                             System.out.println("You have nothing to redo");
+                            sc.nextLine();
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
                         }
@@ -1055,6 +1070,7 @@ public class Main {
                             return projectIssues;
                         } else {
                             System.out.println("You have nothing to redo");
+                            sc.nextLine();
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
                         }
@@ -1128,23 +1144,24 @@ public class Main {
 
                 System.out.println("Issue created successfully.");
                 projectIssues = issueCore(specificProject, programUser, 1);
-                return projectIssues;
-            }
-            else if (issueInput.equalsIgnoreCase("exit")) {
+
+            } else if (issueInput.equalsIgnoreCase("exit")) {
                 projectIssues = issueCore(specificProject, programUser, 0);
-                return projectIssues;
             } else {
                 System.out.println("Unknown command.");
                 projectIssues = issueCore(specificProject, programUser, 1);
-                return projectIssues;
             }
         }
         return projectIssues;
     }
-    
-        public static void newTime(int comID) {
+
+    public static void newTime(int comID) {
         timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new java.util.Date());
     }
+
+    /*public static void newTime(int comID) {
+        timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new java.util.Date());
+    }*/
 
 /* main menu segment for comments & reactions *reminder to integrate
         System.out.println("Enter\n'r' to react \n'c' to comment \n'help' for more commands \nany key to exit");
@@ -1156,7 +1173,7 @@ public class Main {
             inputReaction();
         }*/
 
-    public static void inputComment() {
+    /*public static void inputComment() {
         System.out.println("Enter: ");
         comText = input.nextLine();
         connection.newComment(issueID, userName, comID, comText, timeStamp);
@@ -1174,5 +1191,5 @@ public class Main {
         System.out.println("React \n '1' for happy  \n'2' for sad \n'3' for angry \n'4' for confused \n'5' for thankful");
         interaction = input.nextInt();
         connection.newReaction(userID, comID, interaction);
-    }
+    }*/
 }
