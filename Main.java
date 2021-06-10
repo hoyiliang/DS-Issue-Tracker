@@ -1128,13 +1128,15 @@ public class Main {
 
                 System.out.println("Issue created successfully.");
                 projectIssues = issueCore(specificProject, programUser, 1);
-                
+                return projectIssues;
             }
             else if (issueInput.equalsIgnoreCase("exit")) {
                 projectIssues = issueCore(specificProject, programUser, 0);
+                return projectIssues;
             } else {
                 System.out.println("Unknown command.");
                 projectIssues = issueCore(specificProject, programUser, 1);
+                return projectIssues;
             }
         }
         return projectIssues;
