@@ -1,4 +1,4 @@
-package DS;
+package DSPack;
 
 public class UndoRedo {
     private int proId;
@@ -10,21 +10,23 @@ public class UndoRedo {
     private int commentId;
     private String oldComment;
     private String newComment;
-    private String userName;
+    private long time;
+
 
     public UndoRedo() {
     }
 
-    public UndoRedo(int proId, String projectName, int issueId, String issueName, String oldIssueDesc, String newIssueDesc) {
+    public UndoRedo(int proId, String projectName, int issueId, String issueName, String oldIssueDesc, String newIssueDesc, long time) {
         this.proId = proId;
         this.projectName = projectName;
         this.issueId = issueId;
         this.issueName = issueName;
         this.oldIssueDesc = oldIssueDesc;
         this.newIssueDesc = newIssueDesc;
+        this.time = time;
     }
 
-    public UndoRedo(int proId, String projectName, int issueId, String issueName, int commentId, String oldComment, String newComment) {
+    public UndoRedo(int proId, String projectName, int issueId, String issueName, int commentId, String oldComment, String newComment, long time) {
         this.proId = proId;
         this.projectName = projectName;
         this.issueId = issueId;
@@ -32,18 +34,11 @@ public class UndoRedo {
         this.commentId = commentId;
         this.oldComment = oldComment;
         this.newComment = newComment;
-    }
-
-    public int getProId() {
-        return proId;
+        this.time = time;
     }
 
     public String getProjectName() {
         return projectName;
-    }
-
-    public int getIssueId() {
-        return issueId;
     }
 
     public String getIssueName() {
@@ -70,6 +65,10 @@ public class UndoRedo {
         return newComment;
     }
 
+    public long getTime() {
+        return time;
+    }
+    
     public String toIssueString() {
         return "Project Name: " + getProjectName() + "\n" +
                 "Issue: " + getIssueName() + "\n" +
