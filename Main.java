@@ -35,6 +35,7 @@ public class Main {
     public static Scanner input = new Scanner(System.in);
     public static String comText, timeStamp, userName;
     public static int issueID, comID, userID, interaction;
+    public static String dateEdited;
 
     //Setting up JSON READ
     public static void main(String[] args) throws IOException, ParseException, FileNotFoundException {
@@ -211,7 +212,7 @@ public class Main {
                         newChangelog.put("comment_id", null);
                         newChangelog.put("previous_comment", null);
                         newChangelog.put("edited_comment", null);
-                        newChangelog.put("timestamp", issueDescUndo.peek().getTime());
+                        newChangelog.put("time_edited", issueDescUndo.peek().getTime());
                         changeArr.add(newChangelog);
                         issueDescUndo.pop();
                     } else {
@@ -544,7 +545,6 @@ public class Main {
             System.out.println("'c' to comment");
             System.out.println("or 'help' for more commands: ");
             System.out.print("Input: ");
-            //sc.nextLine();
             String choiceAction = sc.nextLine();
             if (choiceAction.equalsIgnoreCase("r")) {
                 System.out.println("Which comment you want to react?");
@@ -806,7 +806,7 @@ public class Main {
                 }
 
             } else if (choiceAction.equalsIgnoreCase("edit")) {
-                long editedTime = Instant.now().getEpochSecond();
+                dateEdited = new SimpleDateFormat("yyyy.MM.dd.HH:mm").format(new java.util.Date());
                 System.out.println("What do you want to edit in this issue?");
                 System.out.println("1-Issue Desc, 2-Comments");
                 int choiceEdit = sc.nextInt();
@@ -822,7 +822,7 @@ public class Main {
                         newDescText = StringEscapeUtils.unescapeJava(newDescText);
                         String newIssueDesc = sc.nextLine();
                         specificProject.getIssues().get(issueSel).setDescriptionText(newIssueDesc);
-                        issueDescUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), old, newIssueDesc, editedTime));
+                        issueDescUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), old, newIssueDesc, dateEdited));
 
                         JSONObject newIssueIndex = new JSONObject();
                         newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
@@ -860,7 +860,7 @@ public class Main {
                         String newCmtText = sc.nextLine();
                         newCmtText = StringEscapeUtils.unescapeJava(newCmtText);
                         specificProject.getIssues().get(issueSel).getComments().get(editCmtID).setText(newCmtText);
-                        commentUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), editCmtID, oldComment, newCmtText, editedTime));
+                        commentUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), editCmtID, oldComment, newCmtText, dateEdited));
 
                         JSONObject newCommentIndex = new JSONObject();
                         newCommentIndex.put("comment_id", (long) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getCommentId());
@@ -1075,15 +1075,19 @@ public class Main {
                             return projectIssues;
                         }
                     }
-                } else if (choiceAction.equalsIgnoreCase("exit")) {
-                    projectIssues = issueCore(specificProject, programUser, 1);
-                    return projectIssues;
-                } else {
-                    System.out.println("Unknown command.");
+                }else{
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
+            } else if (choiceAction.equalsIgnoreCase("exit")) {
+                projectIssues = issueCore(specificProject, programUser, 1);
+                return projectIssues;
+            } else {
+                System.out.println("Unknown command.");
+                projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
+                return projectIssues;
             }
+
 
         } catch (NumberFormatException eee) {
 
