@@ -15,7 +15,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -32,7 +32,6 @@ public class Main {
     public static Stack<UndoRedo> commentUndo = new Stack<>();
     public static Stack<UndoRedo> commentRedo = new Stack<>();
     public static Scanner input = new Scanner(System.in);
-    public static DBConnect connection = new DBConnect();
     public static String comText, timeStamp, userName;
     public static int issueID, comID, userID, interaction;
 
