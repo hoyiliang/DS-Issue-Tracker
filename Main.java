@@ -442,7 +442,7 @@ public class Main {
             int sortCheck = 0;
             sc.nextLine();
             String sortPref = sc.nextLine();
-            ArrayList<Issue> UnSortedIssues = specificProject.getIssues();
+            ArrayList<Issue> UnSortedIssues = (ArrayList<Issue>) specificProject.getIssues().clone();
             if (sortPref.equalsIgnoreCase("2")) {
                 UnSortedIssues.sort(Comparator.comparingLong(Issue::getTimestampUndated).reversed());
                 sortCheck = 1;
