@@ -193,7 +193,7 @@ public class Main {
             if (password.equals(getPass)) { //Login Success
                 System.out.println("====================== Success! =======================");
                 User programUser = new User((int) getID, getUsername, getPass);
-                projectsArr = projectBoard(projectsArr, programUser);
+                projectsArr = projectBoard(projectsArr, programUser, 1);
 
                 //Changelog
                 JSONArray changeArr = new JSONArray();
@@ -298,76 +298,98 @@ public class Main {
         System.out.println("End of Program");
     }
 
-    public static JSONArray projectBoard(JSONArray projectsArr, User programUser) {
+    public static JSONArray projectBoard(JSONArray projectsArr, User programUser, int recurseCheck) {
 
-        String alignFormatLeft = "| %-2d | %-16s | %-6d |%n";
-        // Project Board
-        System.out.println("Project board\n-------------");
-        System.out.format("+----+------------------+--------+%n");
-        System.out.format("| ID |   Project Name   | Issues |%n");
-        System.out.format("+----+------------------+--------+%n");
-        // List projects
-        for (int i = 0; i < projects.size(); i++) {
-            System.out.format(alignFormatLeft, projects.get(i).getId(), projects.get(i).getName(), projects.get(i).getIssues().size());
-        }
-        System.out.format("+----+------------------+--------+%n");
-
-        // Project Dashboard input
-        System.out.println("Enter selected project ID to check project");
-        System.out.println("or 'c' to create new Project");
-        System.out.println("or 'exit' to logout and shutdown the program");
-        System.out.print("Input: ");
-        String input = sc.next();
-
-        // Search or Create new?
-        try {
-
-            int projectSel = Integer.parseInt(input);
-            JSONArray projectIssues = issueCore(projects.get(projectSel - 1), programUser, 1);
-            long id = projects.get(projectSel - 1).getId();
-            String projectName = projects.get(projectSel - 1).getName();
-            Project modifiedProjectIndex = new Project(id, projectName, projectIssues);
-            projects.set(projectSel - 1, modifiedProjectIndex);
-            connection.setProject(projectSel - 1, projectIssues.toJSONString());
-
-            // Add project data in json syntax
-            JSONObject newProjectIndex = new JSONObject();
-            newProjectIndex.put("id", (long) id);
-            newProjectIndex.put("name", (String) projectName);
-            newProjectIndex.put("issues", (JSONArray) projectIssues);
-            projectsArr.set(projectSel - 1, newProjectIndex);
-
+        if (recurseCheck == 0) { 
             return projectsArr;
+        } else {
+            String alignFormatLeft = "| %-2d | %-16s | %-6d |%n";
+            // Project Board
+            System.out.println("Project board\n-------------");
+            System.out.format("+----+------------------+--------+%n");
+            System.out.format("| ID |   Project Name   | Issues |%n");
+            System.out.format("+----+------------------+--------+%n");
+            // List projects
+            for (int i=0; i<projects.size(); i++) {
+                System.out.format(alignFormatLeft, projects.get(i).getId(), projects.get(i).getName(), projects.get(i).getIssues().size());
+            }
+            System.out.format("+----+------------------+--------+%n");
 
-        } catch (NumberFormatException e) {
-            // Create new project
-            if (input.equalsIgnoreCase("c")) {
-                long id = projects.size();
-                System.out.print("Enter new Project name: ");
-                sc.nextLine();
-                String projectName = sc.nextLine();
-                JSONArray projectIssues = new JSONArray();
+            // Project Dashboard input
+            System.out.println("Enter selected project ID to check project");
+            System.out.println("or 'c' to create new Project");
+            System.out.println("or 'exit' to logout and shutdown the program");
+            System.out.print("Input: ");
+            String input = sc.next();
 
-                // Add project data in runtime
-                projects.add(new Project(id, projectName, projectIssues));
-                // Recursion issueBoard START
-                projectIssues = issueCore(projects.get(projects.size() - 1), programUser, 1);
+            // Search or Create new?
+            try {
 
-                // Add project data in json syntax
-                JSONObject newProject = new JSONObject();
-                newProject.put("id", (long) id);
-                newProject.put("name", (String) projectName);
-                newProject.put("issues", (JSONArray) projectIssues);
-                projectsArr.add(newProject);
-                connection.newProject(connection.getProjectSize() + 1, projectName, projectIssues.toJSONString());
+                int projectSel = Integer.parseInt(input)-1;
+                boolean confirmExitIssueCore = false;
+                JSONArray projectIssues = issueCore(projects.get(projectSel), programUser,1);
+                
+                // Recurse patch to exit to ProjectBoard
+                while (confirmExitIssueCore == false) {
+                    System.out.print("Confirm save changes and exit to Project Board? (y/n): ");
+                    char confirmation = sc.next().charAt(0);
+                    if (confirmation == 'y') {
+                        confirmExitIssueCore = true;
+                    } else {
+                        projectIssues = issueCore(projects.get(projectSel), programUser,1);
+                    }
+                }
 
-                return projectsArr;
+                long id = projects.get(projectSel).getId();
+                String projectName = projects.get(projectSel).getName();
+                Project modifiedProjectIndex = new Project(id, projectName, projectIssues);
+                projects.set(projectSel, modifiedProjectIndex);
+                connection.setProject(projectSel, projectIssues.toJSONString());
 
-            } else if (input.equalsIgnoreCase("exit")) {
+                    // Add project data in json syntax
+                    JSONObject newProjectIndex = new JSONObject();
+                    newProjectIndex.put("id", (long) id);
+                    newProjectIndex.put("name", (String) projectName);
+                    newProjectIndex.put("issues", (JSONArray) projectIssues);
+                    projectsArr.set(projectSel-1, newProjectIndex);
+
+                    projectsArr = projectBoard(projectsArr, programUser, recurseCheck);
+                    return projectsArr;
+
+            } catch (NumberFormatException e) {
+                // Create new project
+                if (input.equalsIgnoreCase("c")) {
+                    long id = projects.size();
+                    System.out.print("Enter new Project name: ");
+                    sc.nextLine();
+                    String projectName = sc.nextLine();
+                    JSONArray projectIssues = new JSONArray();
+
+                    // Add project data in runtime
+                    projects.add(new Project(id, projectName, projectIssues));
+                    // Recursion issueBoard START
+                    projectIssues = issueCore(projects.get(projects.size()-1), programUser,1);
+
+                    // Add project data in json syntax
+                    JSONObject newProject = new JSONObject();
+                    newProject.put("id", (long) id);
+                    newProject.put("name", (String) projectName);
+                    newProject.put("issues", (JSONArray) projectIssues);
+                    projectsArr.add(newProject);
+                    connection.newProject(connection.getProjectSize()+1, projectName, projectIssues.toJSONString());
+                    
+                    // Recursing projectBoard
+                    projectsArr = projectBoard(projectsArr, programUser, recurseCheck);
+
+                } else if (input.equalsIgnoreCase("exit")) {
+                    recurseCheck = 0;
+                } else {
+                    System.out.println("Unknown command.");
+                    projectsArr = projectBoard(projectsArr, programUser, recurseCheck);
+                }
                 return projectsArr;
             }
         }
-        return projectsArr;
     }
 
     // Contains all about issues
@@ -1035,8 +1057,10 @@ public class Main {
                         }
                     }
                 } else if (choiceAction.equalsIgnoreCase("exit")) {
+                    projectIssues = issueCore(specificProject, programUser, 1);
                     return projectIssues;
                 } else {
+                    System.out.println("Unknown command.");
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
@@ -1101,9 +1125,14 @@ public class Main {
 
                 System.out.println("Issue created successfully.");
                 projectIssues = issueCore(specificProject, programUser, 1);
-                return projectIssues;
+                
             }
-
+            else if (issueInput.equalsIgnoreCase("exit")) {
+                projectIssues = issueCore(specificProject, programUser, 0);
+            } else {
+                System.out.println("Unknown command.");
+                projectIssues = issueCore(specificProject, programUser, 1);
+            }
         }
         return projectIssues;
     }
