@@ -887,6 +887,11 @@ public class Main {
                         System.out.println("Editing successful.");
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
+                    } else {
+                        System.out.println("You do not have permission. (not issue owner)");
+                        sc.nextLine();
+                        projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
+                        return projectIssues;
                     }
                 } else {
                     System.out.println("Invalid choice!");
@@ -1076,7 +1081,7 @@ public class Main {
                             return projectIssues;
                         }
                     }
-                }else{
+                } else {
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
