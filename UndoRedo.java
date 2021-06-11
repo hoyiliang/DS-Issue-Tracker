@@ -1,18 +1,40 @@
 package DSPack;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonPropertyOrder({
+        "project_name",
+        "issue_name",
+        "previous_description",
+        "edited_description",
+        "comment_id",
+        "previous_comment",
+        "edited_comment",
+        "time_edited"
+})
 
 public class UndoRedo {
     private int proId;
-    private String projectName;
     private int issueId;
+    
+    @JsonProperty("project_name")
+    private String projectName;
+    @JsonProperty("issue_name")
     private String issueName;
+    @JsonProperty("previous_description")
     private String oldIssueDesc;
+    @JsonProperty("edited_description")
     private String newIssueDesc;
+    @JsonProperty("comment_id")
     private int commentId;
+    @JsonProperty("previous_comment")
     private String oldComment;
+    @JsonProperty("edited_comment")
     private String newComment;
+    @JsonProperty("time_edited")
     private String time;
 
 
