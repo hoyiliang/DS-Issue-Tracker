@@ -78,6 +78,7 @@ public class Main {
             JSONParser jp = new JSONParser();
             JSONObject jo = (JSONObject) jp.parse(new FileReader(filepath));
             JSONArray JSONprojectsArr = (JSONArray) jo.get("projects");
+            JSONArray JSONchangelogArr = (JSONArray) jo.get("changelog");
             JSONArray JSONusersArr = (JSONArray) jo.get("users");
 
             //Adding JSON Data to runtime & update SQL data as necessary (Project)
@@ -193,21 +194,6 @@ public class Main {
                     getUsername = user.getUsername();
                 }
             }
-            /*login //required to insert OTP
-                if(connection.verifyUser(username, password)){
-                    String skey = connection.getOTP(username);
-                    System.out.print("\nPlease input 2FA authenticator OTP: ");
-                    String otp = sc.nextLine();
-                    if(authCode.getTOTPCode(skey).equals(otp)){
-                        System.out.println("Access granted!");
-                }else{
-                        System.out.println("Invalid OTP!");
-                    }
-                }else{
-                    System.out.println("Invalid credentials!");
-                }
-            */
-            
             System.out.print("Password: ");
             String password = sc.nextLine();
             if (password.equals(getPass)) { //Login Success
@@ -324,22 +310,6 @@ public class Main {
 
         System.out.println("End of Program");
     }
-    
-    /*Registration, a secret key is generated
-                String sKey = authCode.generateSecretKey();
-                connection.newUser(getUsername, getPass, sKey);
-                System.out.println("New User Generated");
-                System.out.println("2FA Secret Key: " + sKey);
-            }
-            else if (choiceAuth == 3){
-                break;
-            }
-        }
-
-        System.out.println("End of Program");
-    }
-
-    */
 
     public static JSONArray projectBoard(JSONArray projectsArr, User programUser, int recurseCheck) {
 
@@ -464,13 +434,13 @@ public class Main {
                     System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+%n");
                 }
             }
-
+            int sortCheck = 0;
             System.out.println("Specify your sorting preference: ");
             System.out.println("'1'       - Sort by Priority");
             System.out.println("'2'       - Sort by Timestamps (Latest first)");
             System.out.println("otherwise - Default sorting by ID (Use the board above)");
             System.out.print("Your choice: ");
-            int sortCheck = 0;
+
             sc.nextLine();
             String sortPref = sc.nextLine();
             ArrayList<Issue> UnSortedIssues = (ArrayList<Issue>) specificProject.getIssues().clone();
