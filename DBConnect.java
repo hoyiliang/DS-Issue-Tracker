@@ -135,12 +135,13 @@ public class DBConnect {
         }
     }
     
-    public void newUser(long ID, String Username, String Password) {
+    public void newUser(long ID, String Username, String Password, String SecretKey) {
         try {
-            prepst = connection.prepareStatement("INSERT INTO users (ID,Username,Password) values (?,?,?)");
+            prepst = connection.prepareStatement("INSERT INTO users (ID,Username,Password,skey) values (?,?,?,?)");
             prepst.setLong(1, ID);
             prepst.setString(2, Username);
             prepst.setString(3, Password);
+            prepst.setString(4, SecretKey);
             prepst.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Fail to register new user data into MySQL database");
@@ -173,8 +174,9 @@ public class DBConnect {
             ID = rs.getLong("ID");
             String Username = rs.getString("Username");
             String Password = rs.getString("Password");
+            String SecretKey = rs.getString("skey");
             
-            return new User(ID,Username,Password);
+            return new User(ID,Username,Password,SecretKey);
         } catch (SQLException e) {
             System.out.println("Fail to find a user with specified ID.");
             System.out.println("Detail: " +e);
@@ -182,8 +184,17 @@ public class DBConnect {
         }
     }
     
-    public void setUser() {
-        System.out.println("No need modify user data.");
+    public void setUser(long ID, String SecretKey) {
+        try {
+        prepst = connection.prepareStatement("UPDATE users SET skey=? WHERE ID=?");
+        prepst.setString(1, SecretKey);
+        prepst.setLong(2, ID);
+        prepst.executeUpdate();
+        
+        } catch (SQLException e) {
+            System.out.println("Failed to update user's Secret Key");
+            System.out.println("Detail: " +e);
+        }
     }
     //SELECT EXISTS(SELECT * FROM yourTableName WHERE yourCondition);
 //    public void newReaction(int userID, int comID, int interaction) {
