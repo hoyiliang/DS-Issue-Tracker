@@ -43,14 +43,9 @@ public class DBConnect {
                 dbid = rs.getString("id");
                 dbpassword = rs.getString("password");
             }
-
-            System.out.println(dbid);
-            System.out.println(dbpassword);
-
             if(id.equals(dbid) && pw.equals(dbpassword)){
                 return true;
             }
-
 
         } catch (SQLException ex) {
             System.out.println(ex);
