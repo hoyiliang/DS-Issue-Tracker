@@ -63,6 +63,7 @@ public class Main {
                 newUser.put("userid", (long) users.get(i - 1).getUserid());
                 newUser.put("username", (String) users.get(i - 1).getUsername());
                 newUser.put("password", (String) users.get(i - 1).getPassword());
+                newUser.put("skey", (String) users.get(i - 1).getSecretkey());
                 usersArr.add(newUser);
             }
         }
@@ -78,7 +79,6 @@ public class Main {
             JSONParser jp = new JSONParser();
             JSONObject jo = (JSONObject) jp.parse(new FileReader(filepath));
             JSONArray JSONprojectsArr = (JSONArray) jo.get("projects");
-            JSONArray JSONchangelogArr = (JSONArray) jo.get("changelog");
             JSONArray JSONusersArr = (JSONArray) jo.get("users");
 
             //Adding JSON Data to runtime & update SQL data as necessary (Project)
@@ -132,10 +132,12 @@ public class Main {
                     long userID = (long) userIndex.get("userid");
                     String userName = (String) userIndex.get("username");
                     String password = (String) userIndex.get("password");
+                    String SecretKey = "";
 
+                    userIndex.put("skey", (String) SecretKey);
                     usersArr.add(userIndex);
-                    users.add(new User((int) userID, userName, password));
-                    connection.newUser(userID, userName, password);
+                    users.add(new User((int) userID, userName, password, SecretKey));
+                    connection.newUser(userID, userName, password, SecretKey);
 
                 }
             } else {
@@ -146,6 +148,7 @@ public class Main {
                     long userID = (long) userIndex.get("userid");
                     String userName = (String) userIndex.get("username");
                     String password = (String) userIndex.get("password");
+                    String SecretKey = "";
 
                     for (int j = 0; j < users.size(); j++) {
                         if (users.get(j).getUsername().equals(userName)) {
@@ -159,9 +162,10 @@ public class Main {
                         newuserIndex.put("userid", userID);
                         newuserIndex.put("username", userName);
                         newuserIndex.put("password", password);
+                        newuserIndex.put("skey", SecretKey);
                         usersArr.add(newuserIndex);
-                        users.add(new User((int) userID, userName, password));
-                        connection.newUser(userID, userName, password);
+                        users.add(new User((int) userID, userName, password, SecretKey));
+                        connection.newUser(userID, userName, password, SecretKey);
                     }
                 }
             }
@@ -176,6 +180,7 @@ public class Main {
         String getPass = "";
         long getID = 0;
         String getUsername = "";
+        String getSecretKey = "";
 
         System.out.println("Authentication Required");
         System.out.println("1 - to login\n2 - to register");
@@ -192,6 +197,7 @@ public class Main {
                     getID = user.getUserid();
                     getPass = user.getPassword();
                     getUsername = user.getUsername();
+                    getSecretKey = user.getSecretkey();
                 }
             }
             
@@ -213,8 +219,14 @@ public class Main {
             System.out.print("Password: ");
             String password = sc.nextLine();
             if (password.equals(getPass)) { //Login Success
+                if (getSecretKey.equals("")) {
+                    System.out.println("New imported user, generating new Secret Key...");
+                    getSecretKey =  authCode.generateSecretKey();
+                    System.out.println("Your new Secret Key is: " +getSecretKey +", Please remember it!");
+                    connection.setUser(getID, getSecretKey);
+                }
                 System.out.println("====================== Success! =======================");
-                User programUser = new User((int) getID, getUsername, getPass);
+                User programUser = new User((int) getID, getUsername, getPass, getSecretKey);
                 projectsArr = projectBoard(projectsArr, programUser, 1);
 
                 //Changelog
@@ -237,7 +249,7 @@ public class Main {
                         newChangelog.put("issue_name", commentUndo.peek().getIssueName());
                         newChangelog.put("previous_description", null);
                         newChangelog.put("edited_description", null);
-                        newChangelog.put("comment_id", commentUndo.peek().getCommentId() + 1);
+                        newChangelog.put("comment_id", commentUndo.peek().getCommentId());
                         newChangelog.put("previous_comment", commentUndo.peek().getOldComment());
                         newChangelog.put("edited_comment", commentUndo.peek().getNewComment());
                         newChangelog.put("timestamp", commentUndo.peek().getTime());
@@ -312,22 +324,22 @@ public class Main {
             getUsername = sc.nextLine();
             System.out.print("Password: ");
             getPass = sc.nextLine();
-            users.add(new User((int) getID, getUsername, getPass));
+            String SecretKey = authCode.generateSecretKey();
+            users.add(new User((int) getID, getUsername, getPass, SecretKey));
             JSONObject newUser = new JSONObject();
             newUser.put("userid", (long) getID);
             newUser.put("username", (String) getUsername);
             newUser.put("password", (String) getPass);
             usersArr.add(newUser);
-            connection.newUser(getID, getUsername, getPass);
+            connection.newUser(getID, getUsername, getPass, SecretKey);
             System.out.println("================ Registration Success ================");
 
             loginInterface(usersArr, projectsArr);
         }
-
+        
         System.out.println("End of Program");
-    }
-    
-    /*Registration, a secret key is generated
+        
+        /*Registration, a secret key is generated
                 String sKey = authCode.generateSecretKey();
                 connection.newUser(getUsername, getPass, sKey);
                 System.out.println("New User Generated");
@@ -340,6 +352,7 @@ public class Main {
         System.out.println("End of Program");
     }
     */
+    }
 
     public static JSONArray projectBoard(JSONArray projectsArr, User programUser, int recurseCheck) {
 
