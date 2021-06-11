@@ -220,7 +220,7 @@ public class Main {
                         newChangelog.put("issue_name", commentUndo.peek().getIssueName());
                         newChangelog.put("previous_description", null);
                         newChangelog.put("edited_description", null);
-                        newChangelog.put("comment_id", commentUndo.peek().getCommentId());
+                        newChangelog.put("comment_id", commentUndo.peek().getCommentId() + 1);
                         newChangelog.put("previous_comment", commentUndo.peek().getOldComment());
                         newChangelog.put("edited_comment", commentUndo.peek().getNewComment());
                         newChangelog.put("timestamp", commentUndo.peek().getTime());
@@ -818,11 +818,11 @@ public class Main {
                         String old = specificProject.getIssues().get(issueSel).getDescriptionText();
                         System.out.println("------------------------------------------------------------");
                         System.out.println("Your desired new description text: \n(Hint!: You can copy the original text from this terminal and paste in your input for easy editing)\n(Hint!: escape characters like backslash t or n can be used)\n");
+                        sc.nextLine();
                         String newDescText = sc.nextLine();
                         newDescText = StringEscapeUtils.unescapeJava(newDescText);
-                        String newIssueDesc = sc.nextLine();
-                        specificProject.getIssues().get(issueSel).setDescriptionText(newIssueDesc);
-                        issueDescUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), old, newIssueDesc, dateEdited));
+                        specificProject.getIssues().get(issueSel).setDescriptionText(newDescText);
+                        issueDescUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), old, newDescText, dateEdited));
 
                         JSONObject newIssueIndex = new JSONObject();
                         newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
@@ -857,6 +857,7 @@ public class Main {
                         String oldComment = specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText();
                         System.out.println("------------------------------------------------------------------------------");
                         System.out.println("Your desired new comment text: \n(Hint!: You can copy the original text from this terminal and paste in your input for easy editing)\n(Hint!: escape characters like backslash t or n can be used)\n");
+                        sc.nextLine();
                         String newCmtText = sc.nextLine();
                         newCmtText = StringEscapeUtils.unescapeJava(newCmtText);
                         specificProject.getIssues().get(issueSel).getComments().get(editCmtID).setText(newCmtText);
