@@ -20,6 +20,64 @@ public class DBConnect {
             System.out.println(ex);
         }
     }
+    
+    /*
+        public void newUser(String id, String pw, String sKey){
+        try {
+            String query = "INSERT INTO user (id , password, skey) values (\'" + id + "\', \'" + pw + "\', \'" + sKey + "\')";
+            st.executeUpdate(query);
+        } catch (SQLException ex) {
+            System.out.println(ex);
+        }
+    }
+
+    public boolean verifyUser(String id, String pw){
+        try {
+            String query = "SELECT id, password FROM user WHERE id = \'" + id + "\'";
+
+            rs = st.executeQuery(query);
+            String dbid = null;
+            String dbpassword = null;
+
+            while (rs.next()) {
+                dbid = rs.getString("id");
+                dbpassword = rs.getString("password");
+            }
+
+            System.out.println(dbid);
+            System.out.println(dbpassword);
+
+            if(id.equals(dbid) && pw.equals(dbpassword)){
+                return true;
+            }
+
+
+        } catch (SQLException ex) {
+            System.out.println(ex);
+        }
+
+        return false;
+    }
+
+    public String getOTP(String id){
+        String skey = "NA";
+
+        try {
+            String query = "SELECT skey FROM user WHERE id = \'" + id + "\'";
+
+            rs = st.executeQuery(query);
+
+            while (rs.next()) {
+                skey = rs.getString("skey");
+            }
+
+        } catch (SQLException ex) {
+            System.out.println(ex);
+        }
+
+        return skey;
+    }
+*/
 
     public void newProject(long ID, String Name, String IssuesArrJSONString) {
         try {
