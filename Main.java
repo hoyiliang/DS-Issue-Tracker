@@ -201,21 +201,6 @@ public class Main {
                 }
             }
             
-            /*login //required to insert OTP
-                if(connection.verifyUser(username, password)){
-                    String skey = connection.getOTP(username);
-                    System.out.print("\nPlease input 2FA authenticator OTP: ");
-                    String otp = sc.nextLine();
-                    if(authCode.getTOTPCode(skey).equals(otp)){
-                        System.out.println("Access granted!");
-                }else{
-                        System.out.println("Invalid OTP!");
-                    }
-                }else{
-                    System.out.println("Invalid credentials!");
-                }
-            */
-            
             System.out.print("Password: ");
             String password = sc.nextLine();
             if (password.equals(getPass)) { //Login Success
@@ -349,20 +334,7 @@ public class Main {
         }
         
         System.out.println("End of Program");
-        
-        /*Registration, a secret key is generated
-                String sKey = authCode.generateSecretKey();
-                connection.newUser(getUsername, getPass, sKey);
-                System.out.println("New User Generated");
-                System.out.println("2FA Secret Key: " + sKey);
-            }
-            else if (choiceAuth == 3){
-                break;
-            }
-        }
-        System.out.println("End of Program");
-    }
-    */
+       
     }
 
     public static JSONArray projectBoard(JSONArray projectsArr, User programUser, int recurseCheck) {
