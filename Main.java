@@ -846,7 +846,7 @@ public class Main {
                         String newDescText = sc.nextLine();
                         newDescText = StringEscapeUtils.unescapeJava(newDescText);
                         specificProject.getIssues().get(issueSel).setDescriptionText(newDescText);
-                        issueDescUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), old, newDescText, dateEdited));
+                        issueDescUndo.push(new UndoRedo(specificProject.getName(), specificProject.getIssues().get(issueSel).getTitle(), old, newDescText, dateEdited));
 
                         JSONObject newIssueIndex = new JSONObject();
                         newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
@@ -886,7 +886,7 @@ public class Main {
                         String newCmtText = sc.nextLine();
                         newCmtText = StringEscapeUtils.unescapeJava(newCmtText);
                         specificProject.getIssues().get(issueSel).getComments().get(editCmtID).setText(newCmtText);
-                        commentUndo.push(new UndoRedo((int) specificProject.getId(), specificProject.getName(), (int) specificProject.getIssues().get(issueSel).getId(), specificProject.getIssues().get(issueSel).getTitle(), editCmtID, oldComment, newCmtText, dateEdited));
+                        commentUndo.push(new UndoRedo(specificProject.getName(), specificProject.getIssues().get(issueSel).getTitle(), editCmtID, oldComment, newCmtText, dateEdited));
 
                         JSONObject newCommentIndex = new JSONObject();
                         newCommentIndex.put("comment_id", (long) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getCommentId());
