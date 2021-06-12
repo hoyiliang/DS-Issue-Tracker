@@ -200,14 +200,14 @@ public class Main {
                     getSecretKey = user.getSecretkey();
                 }
             }
-            
+
             System.out.print("Password: ");
             String password = sc.nextLine();
             if (password.equals(getPass)) { //Login Success
                 if (getSecretKey == null) {
                     System.out.println("New imported user, generating new Secret Key...");
-                    getSecretKey =  authCode.generateSecretKey();
-                    System.out.println("Your new Secret Key is: " +getSecretKey +", Please create a new 2FA user in the website: ");
+                    getSecretKey = authCode.generateSecretKey();
+                    System.out.println("Your new Secret Key is: " + getSecretKey + ", Please create a new 2FA user in the website: ");
                     System.out.println("https://gauth.apps.gbraad.nl/#main");
                     connection.setUser(getID, getSecretKey);
                 } else {
@@ -327,14 +327,14 @@ public class Main {
             usersArr.add(newUser);
             connection.newUser(getID, getUsername, getPass, SecretKey);
             System.out.println("================ Registration Success ================");
-            System.out.println("Your Secret Key to your account for 2FA is: " +SecretKey +", Please create a new 2FA user in the website: ");
+            System.out.println("Your Secret Key to your account for 2FA is: " + SecretKey + ", Please create a new 2FA user in the website: ");
             System.out.println("https://gauth.apps.gbraad.nl/#main");
 
             loginInterface(usersArr, projectsArr);
         }
-        
+
         System.out.println("End of Program");
-       
+
     }
 
     public static JSONArray projectBoard(JSONArray projectsArr, User programUser, int recurseCheck) {
@@ -466,18 +466,14 @@ public class Main {
             System.out.println("'2'       - Sort by Timestamps (Latest first)");
             System.out.println("otherwise - Default sorting by ID (Use the board above)");
             System.out.print("Your choice: ");
-
-            sc.nextLine();
-            String sortPref = sc.nextLine();
+            int sortPref = sc.nextInt();
             ArrayList<Issue> UnSortedIssues = (ArrayList<Issue>) specificProject.getIssues().clone();
-            if (sortPref.equalsIgnoreCase("2")) {
+            if (sortPref == 2) {
                 UnSortedIssues.sort(Comparator.comparingLong(Issue::getTimestampUndated).reversed());
                 sortCheck = 1;
-            } else if (sortPref.equalsIgnoreCase("1")) {
+            } else if (sortPref == 1) {
                 UnSortedIssues.sort(Comparator.comparingLong(Issue::getPriority).reversed());
                 sortCheck = 1;
-            } else if (sortPref.equalsIgnoreCase("")) {
-
             } else {
             }
 
@@ -510,6 +506,7 @@ public class Main {
             System.out.println("or 'c' to create issue");
             System.out.println("or 'exit' to logout and shutdown the program");
             System.out.print("Input: ");
+            sc.nextLine();
             String issueInput = sc.nextLine();
 
             if (issueInput.equalsIgnoreCase("exit")) {
@@ -1215,12 +1212,10 @@ public class Main {
         comText = input.nextLine();
         connection.newComment(issueID, userName, comID, comText, timeStamp);
     }
-
     public static void viewComment() {
         System.out.println("");
         connection.getComment(issueID);
     }
-
     public static void inputReaction() {
         input.nextLine();
         System.out.println("Which comment are you recating to? *Type in the comID*");
