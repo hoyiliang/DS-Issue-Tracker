@@ -6,14 +6,14 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-        "project_name",
-        "issue_name",
-        "previous_description",
-        "edited_description",
-        "comment_id",
-        "previous_comment",
-        "edited_comment",
-        "time_edited"
+    "project_name",
+    "issue_name",
+    "previous_description",
+    "edited_description",
+    "comment_id",
+    "previous_comment",
+    "edited_comment",
+    "time_edited"
 })
 
 public class UndoRedo {
@@ -38,6 +38,17 @@ public class UndoRedo {
     public UndoRedo() {
     }
 
+    public UndoRedo(String projectName, String issueName, String oldIssueDesc, String newIssueDesc, int commentId, String oldComment, String newComment, String time) {
+        this.projectName = projectName;
+        this.issueName = issueName;
+        this.oldIssueDesc = oldIssueDesc;
+        this.newIssueDesc = newIssueDesc;
+        this.commentId = commentId;
+        this.oldComment = oldComment;
+        this.newComment = newComment;
+        this.time = time;
+    }
+    
     public UndoRedo(String projectName, String issueName, String oldIssueDesc, String newIssueDesc, String time) {
         this.projectName = projectName;
         this.issueName = issueName;
