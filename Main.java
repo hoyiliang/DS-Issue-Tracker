@@ -398,7 +398,7 @@ public class Main {
             } catch (NumberFormatException e) {
                 // Create new project
                 if (input.equalsIgnoreCase("c")) {
-                    long id = projects.size();
+                    long id = projects.size() + 1;
                     System.out.print("Enter new Project name: ");
                     sc.nextLine();
                     String projectName = sc.nextLine();
@@ -1129,7 +1129,6 @@ public class Main {
             else if (issueInput.equalsIgnoreCase("c")) {
                 long id = specificProject.getIssues().size() + 1;
                 System.out.print("Enter new issue Title: ");
-                sc.nextLine();
                 String title = sc.nextLine();
                 String status = "Open";
                 System.out.print("Enter new issue Tags: (use spaces to split tags if required)");
