@@ -543,7 +543,107 @@ public class Main {
             sc.nextLine();
             String issueInput = sc.nextLine();
 
-            if (issueInput.equalsIgnoreCase("exit")) {
+            //Search Issue (Fuzzy)
+            if (issueInput.equalsIgnoreCase("s")) {
+                ArrayList<FuzzySearch> UnSortedSimScores = new ArrayList<>();
+                String searchKey;
+                double similarityScore = 0.0;
+                System.out.print("Which column you want to search from? \n't' to search with title \n'd' to search with description \n'T' to search with Tags \n'c' to search for comments \nYour choice: ");
+                char searchType = sc.next().charAt(0);
+                sc.nextLine();
+                if (searchType == 't') {
+                    System.out.print("Enter keywords to search for issue title: ");
+                    searchKey = sc.nextLine();
+                    for (int i=0;i<specificProject.getIssues().size();i++) {
+                        
+                        similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTitle());
+                        
+                        if (similarityScore > 0.25) {
+                            UnSortedSimScores.add(new FuzzySearch(similarityScore, i));
+                        }
+                    }
+                }
+                else if (searchType == 'd') {
+                    System.out.print("Enter keywords to search issue by description: ");
+                    searchKey = sc.nextLine();
+                    for (int i=0;i<specificProject.getIssues().size();i++) {
+                        
+                        similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getDescriptionText());
+                        
+                        if (similarityScore > 0.1) {
+                            UnSortedSimScores.add(new FuzzySearch(similarityScore, i));
+                        }
+                    }
+                } else if (searchType == 'T') {
+                    System.out.print("Enter desired tag to search for issue: ");
+                    searchKey = sc.nextLine();
+                    for (int i=0;i<specificProject.getIssues().size();i++) {
+                        
+                        if (specificProject.getIssues().get(i).getTags().size() > 1) {
+                            for (int j=0;j<specificProject.getIssues().get(i).getTags().size();j++) {
+                                similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTags().get(j));
+                            }
+                        } else {
+                            similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTags().get(0));
+                        }
+                        
+                        if (similarityScore >= 0.9) {
+                            UnSortedSimScores.add(new FuzzySearch(similarityScore, i));
+                        }
+                    }
+                } else if (searchType == 'c') {
+                    System.out.print("Enter keywords to search issue by comments: ");
+                    searchKey = sc.nextLine();
+                    double highestSimScore = 0.0;
+                    
+                    for (int i=0;i<specificProject.getIssues().size();i++) {
+                        
+                        if (specificProject.getIssues().get(i).getComments().size() > 1) {
+                            for (int j=0;j<specificProject.getIssues().get(i).getComments().size();j++) {
+                                similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getComments().get(j).getText());
+                                if (similarityScore > highestSimScore) { highestSimScore = similarityScore; }
+                            }
+                        } else {
+                            highestSimScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTags().get(0));
+                        }
+                        
+                        if (highestSimScore > 0.15) {
+                            UnSortedSimScores.add(new FuzzySearch(highestSimScore, i));
+                        }
+                    }
+                }
+                
+                UnSortedSimScores.sort(Comparator.comparingDouble(FuzzySearch::getSimScore).reversed());
+                System.out.println("Search Results: (Similarity Score sorted in Descending order)\n---------------\n");
+                System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
+                System.out.format("| ID |              Title               |   Status    |        Tag         | Priority |       Time       | Assignee | CreatedBy  |\n");
+                System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
+                for (int i=0; i<UnSortedSimScores.size(); i++) {
+                    SimpleDateFormat FormatPattern = new SimpleDateFormat("yyyy/MM/dd hh:mm");
+                    String datetimeFormatted = FormatPattern.format(specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getTimestamp());
+                    if (specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getTags().size() > 1) {
+                        System.out.format(alignFormatLeft, specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getId(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getTitle(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getStatus(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getTags().get(0), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getPriority(), datetimeFormatted, specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getAssignee(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getCreatedBy());
+                        for (int j = 1; j < UnSortedIssues.get(i).getTags().size(); j++) {
+                            System.out.format(multipleTagsAlign, specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getTags().get(j));
+                        }
+                        System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
+                    } else {
+                        System.out.format(alignFormatLeft, specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getId(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getTitle(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getStatus(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getTags().get(0), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getPriority(), datetimeFormatted, specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getAssignee(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getCreatedBy());
+                    }
+                }
+                System.out.println("Enter issue ID to check issue");
+                System.out.println("or 'c' to create issue");
+                System.out.println("or 'exit' to logout and shutdown the program");
+                System.out.print("Input: ");
+                issueInput = sc.nextLine();
+                
+                if (issueInput.equalsIgnoreCase("exit")) {
+                    recurseCheck = 0;
+                } else {
+                    projectIssues = issuePage(specificProject, programUser, issueInput, specificProject.getIssuesArr());
+                }
+            }
+            else if (issueInput.equalsIgnoreCase("exit")) {
                 recurseCheck = 0;
             } else {
                 projectIssues = issuePage(specificProject, programUser, issueInput, specificProject.getIssuesArr());
