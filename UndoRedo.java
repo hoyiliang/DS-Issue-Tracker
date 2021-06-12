@@ -17,9 +17,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 })
 
 public class UndoRedo {
-    private int proId;
-    private int issueId;
-    
+
     @JsonProperty("project_name")
     private String projectName;
     @JsonProperty("issue_name")
@@ -37,24 +35,19 @@ public class UndoRedo {
     @JsonProperty("time_edited")
     private String time;
 
-
     public UndoRedo() {
     }
 
-    public UndoRedo(int proId, String projectName, int issueId, String issueName, String oldIssueDesc, String newIssueDesc, String time) {
-        this.proId = proId;
+    public UndoRedo(String projectName, String issueName, String oldIssueDesc, String newIssueDesc, String time) {
         this.projectName = projectName;
-        this.issueId = issueId;
         this.issueName = issueName;
         this.oldIssueDesc = oldIssueDesc;
         this.newIssueDesc = newIssueDesc;
         this.time = time;
     }
 
-    public UndoRedo(int proId, String projectName, int issueId, String issueName, int commentId, String oldComment, String newComment, String time) {
-        this.proId = proId;
+    public UndoRedo(String projectName, String issueName, int commentId, String oldComment, String newComment, String time) {
         this.projectName = projectName;
-        this.issueId = issueId;
         this.issueName = issueName;
         this.commentId = commentId;
         this.oldComment = oldComment;
@@ -95,20 +88,20 @@ public class UndoRedo {
     }
 
     public String toIssueString() {
-        return "Project Name: " + getProjectName() + "\n" +
-                "Issue: " + getIssueName() + "\n" +
-                "Old Issue Description: " + getOldIssueDesc() + "\n" +
-                "Edited Issue Description: " + getNewIssueDesc() + "\n" +
-                "Time Edited: " + getTime() + "\n" +
-                "-----------------------------------------------------------";
+        return "Project Name: " + getProjectName() + "\n"
+                + "Issue: " + getIssueName() + "\n"
+                + "Old Issue Description: " + getOldIssueDesc() + "\n"
+                + "Edited Issue Description: " + getNewIssueDesc() + "\n"
+                + "Time Edited: " + getTime() + "\n"
+                + "-----------------------------------------------------------";
     }
 
     public String toCommentString() {
-        return "Project Name: " + getProjectName() + "\n" +
-                "Issue: " + getIssueName() + "\n" +
-                "Old Comment: " + getOldComment() + "\n" +
-                "Edited Comment: " + getNewComment() + "\n" +
-                "Time Edited: " + getTime() + "\n" +
-                "-----------------------------------------------------------";
+        return "Project Name: " + getProjectName() + "\n"
+                + "Issue: " + getIssueName() + "\n"
+                + "Old Comment: " + getOldComment() + "\n"
+                + "Edited Comment: " + getNewComment() + "\n"
+                + "Time Edited: " + getTime() + "\n"
+                + "-----------------------------------------------------------";
     }
 }
