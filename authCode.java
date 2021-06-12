@@ -7,6 +7,8 @@ import org.apache.commons.codec.binary.Hex;
 import java.security.SecureRandom;
 
 public class authCode {
+    
+    public authCode() {}
 
     public static String generateSecretKey() {
         SecureRandom random = new SecureRandom();
