@@ -867,6 +867,7 @@ public class Main {
 
                     } else {
                         System.out.println("You do not have permission. (not issue owner)");
+                        sc.nextLine();
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     }
