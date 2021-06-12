@@ -26,6 +26,7 @@ public class Main {
 
     static List<Project> projects = new ArrayList<>();
     static List<User> users = new ArrayList<>();
+    static List<UndoRedo> changelogs = new ArrayList<>();
     public static Scanner sc = new Scanner(System.in);
     public static DBConnect connection = new DBConnect();
     public static Stack<UndoRedo> issueDescUndo = new Stack<>();
@@ -80,6 +81,25 @@ public class Main {
             JSONObject jo = (JSONObject) jp.parse(new FileReader(filepath));
             JSONArray JSONprojectsArr = (JSONArray) jo.get("projects");
             JSONArray JSONusersArr = (JSONArray) jo.get("users");
+            
+            //Reading changelog data
+            if (jo.containsKey("changelog")) {
+                JSONArray JSONchangelogArr = (JSONArray) jo.get("changelog");
+                for (int i = 0; i < JSONchangelogArr.size(); i++) {
+                    JSONObject changelogIndex = (JSONObject) JSONchangelogArr.get(i);
+
+                    String proName = (String) changelogIndex.get("project_name");
+                    String isuName = (String) changelogIndex.get("issue_name");
+                    String prevDesc = (String) changelogIndex.get("previous_description");
+                    String editDesc = (String) changelogIndex.get("edited_description");
+                    long comId = (long) changelogIndex.get("comment_id");
+                    String prevCom = (String) changelogIndex.get("previous_comment");
+                    String editCom = (String) changelogIndex.get("edited_comment");
+                    String editTime = (String) changelogIndex.get("time_edited");
+
+                    changelogs.add(new UndoRedo(proName, isuName, prevDesc, editDesc, (int) comId, prevCom, editCom, editTime));
+                }
+            }
 
             //Adding JSON Data to runtime & update SQL data as necessary (Project)
             if (projects.size() == 0) {
@@ -225,6 +245,20 @@ public class Main {
 
                 //Changelog
                 JSONArray changeArr = new JSONArray();
+                JSONObject changelog = new JSONObject();
+                for (int i = 0; i < changelogs.size(); i++) {
+                    changelog.put("project_name", changelogs.get(i).getProjectName());
+                    changelog.put("issue_name", changelogs.get(i).getIssueName());
+                    changelog.put("previous_description", changelogs.get(i).getOldIssueDesc());
+                    changelog.put("edited_description", changelogs.get(i).getNewIssueDesc());
+                    changelog.put("comment_id", changelogs.get(i).getCommentId());
+                    changelog.put("previous_comment", changelogs.get(i).getOldComment());
+                    changelog.put("edited_comment", changelogs.get(i).getNewComment());
+                    changelog.put("time_edited", changelogs.get(i).getTime());
+                    changeArr.add(changelog);
+
+                }
+
                 while (!issueDescUndo.isEmpty() || !commentUndo.isEmpty()) {
                     JSONObject newChangelog = new JSONObject();
                     if (!issueDescUndo.isEmpty()) {
@@ -232,17 +266,17 @@ public class Main {
                         newChangelog.put("issue_name", issueDescUndo.peek().getIssueName());
                         newChangelog.put("previous_description", issueDescUndo.peek().getOldIssueDesc());
                         newChangelog.put("edited_description", issueDescUndo.peek().getNewIssueDesc());
-                        newChangelog.put("comment_id", null);
-                        newChangelog.put("previous_comment", null);
-                        newChangelog.put("edited_comment", null);
+                        newChangelog.put("comment_id", -1);
+                        newChangelog.put("previous_comment", "");
+                        newChangelog.put("edited_comment", "");
                         newChangelog.put("time_edited", issueDescUndo.peek().getTime());
                         changeArr.add(newChangelog);
                         issueDescUndo.pop();
                     } else {
                         newChangelog.put("project_name", commentUndo.peek().getProjectName());
                         newChangelog.put("issue_name", commentUndo.peek().getIssueName());
-                        newChangelog.put("previous_description", null);
-                        newChangelog.put("edited_description", null);
+                        newChangelog.put("previous_description", "");
+                        newChangelog.put("edited_description", "");
                         newChangelog.put("comment_id", commentUndo.peek().getCommentId());
                         newChangelog.put("previous_comment", commentUndo.peek().getOldComment());
                         newChangelog.put("edited_comment", commentUndo.peek().getNewComment());
