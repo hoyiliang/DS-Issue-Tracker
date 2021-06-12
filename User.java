@@ -1,22 +1,9 @@
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-        "userid",
-        "username",
-        "password"
-})
-
 public class User {
 
-    @JsonProperty("userid")
-    private Integer userid;
-    @JsonProperty("username")
+    private long userid;
     private String username;
-    @JsonProperty("password")
     private String password;
+    private String secretkey;
 
     /**
      * No args constructor for use in serialization
@@ -31,34 +18,31 @@ public class User {
      * @param userid
      * @param username
      */
-    public User(Integer userid, String username, String password) {
+    public User(long userid, String username, String password, String secretkey) {
         super();
         this.userid = userid;
         this.username = username;
         this.password = password;
+        this.secretkey = secretkey;
     }
 
-    @JsonProperty("userid")
-    public Integer getUserid() {
+    public long getUserid() {
         return userid;
     }
 
-    @JsonProperty("userid")
-    public void setUserid(Integer userid) {
+    public void setUserid(long userid) {
         this.userid = userid;
     }
 
-    public User withUserid(Integer userid) {
+    public User withUserid(long userid) {
         this.userid = userid;
         return this;
     }
 
-    @JsonProperty("username")
     public String getUsername() {
         return username;
     }
 
-    @JsonProperty("username")
     public void setUsername(String username) {
         this.username = username;
     }
@@ -68,12 +52,10 @@ public class User {
         return this;
     }
 
-    @JsonProperty("password")
     public String getPassword() {
         return password;
     }
 
-    @JsonProperty("password")
     public void setPassword(String password) {
         this.password = password;
     }
@@ -81,6 +63,14 @@ public class User {
     public User withPassword(String password) {
         this.password = password;
         return this;
+    }
+
+    public String getSecretkey() {
+        return secretkey;
+    }
+
+    public void setSecretkey(String secretkey) {
+        this.secretkey = secretkey;
     }
 
 }
