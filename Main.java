@@ -1424,10 +1424,11 @@ public class Main {
                 }
                 System.out.print("Choose by User ID (0 for null): ");
                 int choiceAssignee = sc.nextInt() - 1;
+                String Assignee = null;
                 if (choiceAssignee < 0) {
-                    String Assignee = null;
+                    Assignee = null;
                 } else {
-                    String Assignee = users.get(choiceAssignee).getUsername();
+                    Assignee = users.get(choiceAssignee).getUsername();
                 }
                 long timestampUndated = Instant.now().getEpochSecond();
                 JSONArray comments = new JSONArray();
