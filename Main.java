@@ -121,7 +121,7 @@ public class Main {
                     projects.add(new Project(projectID, projectName, issuesArr));
                     connection.newProject(projectID, projectName, issuesArr.toJSONString());
                 }
-            } else {
+            } else {    // Project ID uses the last ID of an existing project plus 1.
                 for (int i = 0; i < JSONprojectsArr.size(); i++) {
                     JSONObject projectIndex = (JSONObject) JSONprojectsArr.get(i);
                     boolean isSameName = false;
@@ -130,23 +130,23 @@ public class Main {
                     String projectName = (String) projectIndex.get("name");
                     issuesArr = (JSONArray) projectIndex.get("issues");
 
+                    // Checks if same project name already exists and update the project's data as necessary
                     for (int j = 0; j < projects.size(); j++) {
                         if (projects.get(j).getName().equals(projectName)) {
                             isSameName = true;
                             projectsArr.set(j, projectIndex);
                             projects.set(j, new Project(projectID, projectName, issuesArr));
                             connection.setProject(projectID, issuesArr.toJSONString());
+                        } else {
+                            JSONObject newprojectIndex = new JSONObject();
+                            projectID = connection.getProjectSize() + 1;
+                            newprojectIndex.put("id", (long) projectID);
+                            newprojectIndex.put("name", (String) projectName);
+                            newprojectIndex.put("issues", (JSONArray) issuesArr);
+                            projectsArr.add(newprojectIndex);
+                            projects.add(new Project(projectID, projectName, issuesArr));
+                            connection.newProject(projectID, projectName, issuesArr.toJSONString());
                         }
-                    }
-                    if (isSameName == false) {
-                        JSONObject newprojectIndex = new JSONObject();
-                        projectID = connection.getProjectSize() + 1;
-                        newprojectIndex.put("id", (long) projectID);
-                        newprojectIndex.put("name", (String) projectName);
-                        newprojectIndex.put("issues", (JSONArray) issuesArr);
-                        projectsArr.add(newprojectIndex);
-                        projects.add(new Project(projectID, projectName, issuesArr));
-                        connection.newProject(projectID, projectName, issuesArr.toJSONString());
                     }
                 }
             }
@@ -167,7 +167,7 @@ public class Main {
                     connection.newUser(userID, userName, password, SecretKey);
 
                 }
-            } else {
+            } else {    // User ID uses the last ID of existing user plus 1
                 for (int i = 0; i < JSONusersArr.size(); i++) {
                     JSONObject userIndex = (JSONObject) JSONusersArr.get(i);
                     boolean isSameUser = false;
@@ -177,22 +177,22 @@ public class Main {
                     String password = (String) userIndex.get("password");
                     String SecretKey = "";
 
+                    // Checks if username same as in any user data in runtime
                     for (int j = 0; j < users.size(); j++) {
                         if (users.get(j).getUsername().equals(userName)) {
                             isSameUser = true;
-                            System.out.println("No user information has been changed due to security.");
+                            System.out.println("No user information has been changed due to security." +"(" +userName +")");
+                        } else {
+                            JSONObject newuserIndex = new JSONObject();
+                            userID = connection.getUserSize() + 1;
+                            newuserIndex.put("userid", userID);
+                            newuserIndex.put("username", userName);
+                            newuserIndex.put("password", password);
+                            newuserIndex.put("skey", SecretKey);
+                            usersArr.add(newuserIndex);
+                            users.add(new User((int) userID, userName, password, SecretKey));
+                            connection.newUser(userID, userName, password, SecretKey);
                         }
-                    }
-                    if (isSameUser == false) {
-                        JSONObject newuserIndex = new JSONObject();
-                        userID = connection.getUserSize() + 1;
-                        newuserIndex.put("userid", userID);
-                        newuserIndex.put("username", userName);
-                        newuserIndex.put("password", password);
-                        newuserIndex.put("skey", SecretKey);
-                        usersArr.add(newuserIndex);
-                        users.add(new User((int) userID, userName, password, SecretKey));
-                        connection.newUser(userID, userName, password, SecretKey);
                     }
                 }
             }
