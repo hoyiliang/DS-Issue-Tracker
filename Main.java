@@ -38,12 +38,16 @@ public class Main {
     public static int issueID, comID, userID, interaction;
     public static String dateEdited;
 
-    //Setting up JSON READ
+    
     public static void main(String[] args) throws IOException, ParseException, FileNotFoundException {
+        
+        // Declare new runtime JSON data for import/export use
         JSONArray projectsArr = new JSONArray();
         JSONArray issuesArr = new JSONArray();
         JSONArray usersArr = new JSONArray();
-        if (connection.getProjectSize() == 0) {
+        
+        // Initial read from MySQL DB
+        if (connection.getProjectSize() == 0) {     // Project data read from SQL (if necessary)
 
         } else {
             for (int i = 1; i <= connection.getProjectSize(); i++) {
@@ -55,7 +59,7 @@ public class Main {
                 projectsArr.add(newProject);
             }
         }
-        if (connection.getUserSize() == 0) {
+        if (connection.getUserSize() == 0) {        // User data read from SQL (if necessary)
 
         } else {
             for (int i = 1; i <= connection.getUserSize(); i++) {
@@ -68,10 +72,13 @@ public class Main {
                 usersArr.add(newUser);
             }
         }
+        
+        // Asking user if they want to import new data through JSON file.
         System.out.print("Import JSON? (y/n): ");
         char importjsonchoice = sc.next().charAt(0);
-        if (importjsonchoice == 'y' || importjsonchoice == 'Y') {
+        if (importjsonchoice == 'y' || importjsonchoice == 'Y') {       // If yes,
 
+            // Ask user for filepath to JSON file.
             System.out.print("Specify file path (do \\\\ instead of \\): ");
             sc.nextLine();
             String filepath = sc.nextLine();
@@ -189,160 +196,173 @@ public class Main {
                     }
                 }
             }
+        // All initial data read/write is done. Runs authentication system.
             loginInterface(usersArr, projectsArr);
         } else {
             loginInterface(usersArr, projectsArr);
         }
     }
 
-    // Visible runtime START
+    // Visible runtime START (Authentication page)
     public static void loginInterface(JSONArray usersArr, JSONArray projectsArr) {
+        
+        // Declare and initialize required variables.
         String getPass = "";
         long getID = 0;
         String getUsername = "";
         String getSecretKey = "";
 
+        // Asks user if want to login using existing account or register a new account.
         System.out.println("Authentication Required");
         System.out.println("1 - to login\n2 - to register");
         System.out.print("Input: ");
         int choiceAuth = sc.nextInt();
         sc.nextLine();
 
-        if (choiceAuth == 1) { //Login
+        // Verify choices and run suitable instructions.
+        if (choiceAuth == 1) {      //Login
             System.out.println("==================== Please Login! ====================");
             System.out.print("Username: ");
             String username = sc.nextLine();
+            boolean userExist = false;
+            // Search runtime users data to determine if user exists.
             for (User user : users) {
                 if (username.equals(user.getUsername())) {
                     getID = user.getUserid();
                     getPass = user.getPassword();
                     getUsername = user.getUsername();
                     getSecretKey = user.getSecretkey();
+                    userExist = true;
                 }
             }
-
-            System.out.print("Password: ");
-            String password = sc.nextLine();
-            if (password.equals(getPass)) { //Login Success
-                if (getSecretKey == null) {
-                    System.out.println("New imported user, generating new Secret Key...");
-                    getSecretKey = authCode.generateSecretKey();
-                    System.out.println("Your new Secret Key is: " + getSecretKey + ", Please create a new 2FA user in the website: ");
-                    System.out.println("https://gauth.apps.gbraad.nl/#main");
-                    connection.setUser(getID, getSecretKey);
-                } else {
-                    System.out.print("Enter your OTP from the website: ");
-                    String OTP = sc.nextLine();
-                    if (OTP.equals(authCode.getTOTPCode(getSecretKey))) {
-                        System.out.println("====================== Success! =======================");
-                        User programUser = new User((int) getID, getUsername, getPass, getSecretKey);
-                        projectsArr = projectBoard(projectsArr, programUser, 1);
+            
+            if (userExist == true) {
+                System.out.print("Password: ");
+                String password = sc.nextLine();
+                if (password.equals(getPass)) { //Login Success
+                    if (getSecretKey == null) {
+                        System.out.println("New imported user, generating new Secret Key...");
+                        getSecretKey = authCode.generateSecretKey();
+                        System.out.println("Your new Secret Key is: " + getSecretKey + ", Please create a new 2FA user in the website: ");
+                        System.out.println("https://gauth.apps.gbraad.nl/#main");
+                        connection.setUser(getID, getSecretKey);
                     } else {
-                        System.out.println("====================== Failure! =======================");
-                        loginInterface(usersArr, projectsArr);
-                    }
-                }
-
-                //Changelog
-                JSONArray changeArr = new JSONArray();
-                JSONObject changelog = new JSONObject();
-                for (int i = 0; i < changelogs.size(); i++) {
-                    changelog.put("project_name", changelogs.get(i).getProjectName());
-                    changelog.put("issue_name", changelogs.get(i).getIssueName());
-                    changelog.put("previous_description", changelogs.get(i).getOldIssueDesc());
-                    changelog.put("edited_description", changelogs.get(i).getNewIssueDesc());
-                    changelog.put("comment_id", changelogs.get(i).getCommentId());
-                    changelog.put("previous_comment", changelogs.get(i).getOldComment());
-                    changelog.put("edited_comment", changelogs.get(i).getNewComment());
-                    changelog.put("time_edited", changelogs.get(i).getTime());
-                    changeArr.add(changelog);
-
-                }
-
-                while (!issueDescUndo.isEmpty() || !commentUndo.isEmpty()) {
-                    JSONObject newChangelog = new JSONObject();
-                    if (!issueDescUndo.isEmpty()) {
-                        newChangelog.put("project_name", issueDescUndo.peek().getProjectName());
-                        newChangelog.put("issue_name", issueDescUndo.peek().getIssueName());
-                        newChangelog.put("previous_description", issueDescUndo.peek().getOldIssueDesc());
-                        newChangelog.put("edited_description", issueDescUndo.peek().getNewIssueDesc());
-                        newChangelog.put("comment_id", -1);
-                        newChangelog.put("previous_comment", "");
-                        newChangelog.put("edited_comment", "");
-                        newChangelog.put("time_edited", issueDescUndo.peek().getTime());
-                        changeArr.add(newChangelog);
-                        issueDescUndo.pop();
-                    } else {
-                        newChangelog.put("project_name", commentUndo.peek().getProjectName());
-                        newChangelog.put("issue_name", commentUndo.peek().getIssueName());
-                        newChangelog.put("previous_description", "");
-                        newChangelog.put("edited_description", "");
-                        newChangelog.put("comment_id", commentUndo.peek().getCommentId());
-                        newChangelog.put("previous_comment", commentUndo.peek().getOldComment());
-                        newChangelog.put("edited_comment", commentUndo.peek().getNewComment());
-                        newChangelog.put("timestamp", commentUndo.peek().getTime());
-                        changeArr.add(newChangelog);
-                        commentUndo.pop();
-                    }
-                }
-
-                //Report Generation
-                String alignFormat = "|  %-13s  | %-5d |%n";
-                for (int i = 0; i < projects.size(); i++) {
-                    System.out.println("Project Name: " + projects.get(i).getName());
-                    System.out.println("==========================================");
-                    int open = 0, resolve = 0, inProgress = 0, closed = 0;
-                    for (int j = 0; j < projects.get(i).getIssuesArr().size(); j++) {
-                        if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("open")) {
-                            open++;
-                        } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("resolved")) {
-                            resolve++;
-                        } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("In Progress")) {
-                            inProgress++;
-                        } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("closed")) {
-                            closed++;
+                        System.out.print("Enter your OTP from the website: ");
+                        String OTP = sc.nextLine();
+                        if (OTP.equals(authCode.getTOTPCode(getSecretKey))) {
+                            System.out.println("====================== Success! =======================");
+                            User programUser = new User((int) getID, getUsername, getPass, getSecretKey);
+                            projectsArr = projectBoard(projectsArr, programUser, 1);
+                        } else {
+                            System.out.println("====================== Failure! =======================");
+                            loginInterface(usersArr, projectsArr);
                         }
                     }
-                    int total = open + resolve + inProgress + closed;
-                    System.out.format("+-----------------+-------+%n");
-                    System.out.format("| Status Category | Issue |%n");
-                    System.out.format("+-----------------+-------+%n");
-                    System.out.format(alignFormat, "Open", open);
-                    System.out.format(alignFormat, "Resolved", resolve);
-                    System.out.format(alignFormat, "In progress", inProgress);
-                    System.out.format(alignFormat, "Closed", closed);
-                    System.out.format("+-----------------+-------+%n");
-                    System.out.format(alignFormat, "Total", total);
-                    System.out.format("+-----------------+-------+%n");
-                    System.out.println();
-                }
 
-                System.out.print("Do you want to export new JSON data to a file? (y/n): ");
-                char export = sc.next().charAt(0);
-                if (export == 'y' || export == 'Y') {
-                    JSONObject newjsondata = new JSONObject();
-                    newjsondata.put("projects", projectsArr);
-                    newjsondata.put("users", usersArr);
-                    newjsondata.put("changelog", changeArr);
+                    //Changelog
+                    JSONArray changeArr = new JSONArray();
+                    JSONObject changelog = new JSONObject();
+                    for (int i = 0; i < changelogs.size(); i++) {
+                        changelog.put("project_name", changelogs.get(i).getProjectName());
+                        changelog.put("issue_name", changelogs.get(i).getIssueName());
+                        changelog.put("previous_description", changelogs.get(i).getOldIssueDesc());
+                        changelog.put("edited_description", changelogs.get(i).getNewIssueDesc());
+                        changelog.put("comment_id", changelogs.get(i).getCommentId());
+                        changelog.put("previous_comment", changelogs.get(i).getOldComment());
+                        changelog.put("edited_comment", changelogs.get(i).getNewComment());
+                        changelog.put("time_edited", changelogs.get(i).getTime());
+                        changeArr.add(changelog);
 
-                    // Pretty-print JSON using GSON
-                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                    JsonParser jp = new JsonParser();
-                    JsonElement je = jp.parse(newjsondata.toJSONString());
-                    String formattedJsonString = gson.toJson(je);
-
-                    // write data to json algorithm
-                    try (FileWriter file = new FileWriter("data.json")) {
-                        file.write(formattedJsonString);
-                        file.flush();
-
-                    } catch (IOException ee) {
-                        ee.printStackTrace();
                     }
-                }
 
-            } else { //Login fail
-                System.out.println("====================== Failure! =======================");
+                    while (!issueDescUndo.isEmpty() || !commentUndo.isEmpty()) {
+                        JSONObject newChangelog = new JSONObject();
+                        if (!issueDescUndo.isEmpty()) {
+                            newChangelog.put("project_name", issueDescUndo.peek().getProjectName());
+                            newChangelog.put("issue_name", issueDescUndo.peek().getIssueName());
+                            newChangelog.put("previous_description", issueDescUndo.peek().getOldIssueDesc());
+                            newChangelog.put("edited_description", issueDescUndo.peek().getNewIssueDesc());
+                            newChangelog.put("comment_id", -1);
+                            newChangelog.put("previous_comment", "");
+                            newChangelog.put("edited_comment", "");
+                            newChangelog.put("time_edited", issueDescUndo.peek().getTime());
+                            changeArr.add(newChangelog);
+                            issueDescUndo.pop();
+                        } else {
+                            newChangelog.put("project_name", commentUndo.peek().getProjectName());
+                            newChangelog.put("issue_name", commentUndo.peek().getIssueName());
+                            newChangelog.put("previous_description", "");
+                            newChangelog.put("edited_description", "");
+                            newChangelog.put("comment_id", commentUndo.peek().getCommentId());
+                            newChangelog.put("previous_comment", commentUndo.peek().getOldComment());
+                            newChangelog.put("edited_comment", commentUndo.peek().getNewComment());
+                            newChangelog.put("timestamp", commentUndo.peek().getTime());
+                            changeArr.add(newChangelog);
+                            commentUndo.pop();
+                        }
+                    }
+
+                    //Report Generation
+                    String alignFormat = "|  %-13s  | %-5d |%n";
+                    for (int i = 0; i < projects.size(); i++) {
+                        System.out.println("Project Name: " + projects.get(i).getName());
+                        System.out.println("==========================================");
+                        int open = 0, resolve = 0, inProgress = 0, closed = 0;
+                        for (int j = 0; j < projects.get(i).getIssuesArr().size(); j++) {
+                            if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("open")) {
+                                open++;
+                            } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("resolved")) {
+                                resolve++;
+                            } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("In Progress")) {
+                                inProgress++;
+                            } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("closed")) {
+                                closed++;
+                            }
+                        }
+                        int total = open + resolve + inProgress + closed;
+                        System.out.format("+-----------------+-------+%n");
+                        System.out.format("| Status Category | Issue |%n");
+                        System.out.format("+-----------------+-------+%n");
+                        System.out.format(alignFormat, "Open", open);
+                        System.out.format(alignFormat, "Resolved", resolve);
+                        System.out.format(alignFormat, "In progress", inProgress);
+                        System.out.format(alignFormat, "Closed", closed);
+                        System.out.format("+-----------------+-------+%n");
+                        System.out.format(alignFormat, "Total", total);
+                        System.out.format("+-----------------+-------+%n");
+                        System.out.println();
+                    }
+
+                    System.out.print("Do you want to export new JSON data to a file? (y/n): ");
+                    char export = sc.next().charAt(0);
+                    if (export == 'y' || export == 'Y') {
+                        JSONObject newjsondata = new JSONObject();
+                        newjsondata.put("projects", projectsArr);
+                        newjsondata.put("users", usersArr);
+                        newjsondata.put("changelog", changeArr);
+
+                        // Pretty-print JSON using GSON
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        JsonParser jp = new JsonParser();
+                        JsonElement je = jp.parse(newjsondata.toJSONString());
+                        String formattedJsonString = gson.toJson(je);
+
+                        // write data to json algorithm
+                        try (FileWriter file = new FileWriter("data.json")) {
+                            file.write(formattedJsonString);
+                            file.flush();
+
+                        } catch (IOException ee) {
+                            ee.printStackTrace();
+                        }
+                    }
+
+                } else { //Login fail
+                    System.out.println("====================== Failure! =======================");
+                    loginInterface(usersArr, projectsArr);
+                }
+            } else {
+                System.out.println("================ User does not exist ==================");
                 loginInterface(usersArr, projectsArr);
             }
         } else if (choiceAuth == 2) { //Registration
