@@ -648,7 +648,7 @@ public class Main {
                                 if (similarityScore > highestSimScore) { highestSimScore = similarityScore; }
                             }
                         } else {
-                            highestSimScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTags().get(0));
+                            highestSimScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getComments().get(0).getText());
                         }
                         
                         if (highestSimScore > 0.1) { // Minimum similarity score threshold (comment)
