@@ -1426,7 +1426,7 @@ public class Main {
                 int choiceAssignee = sc.nextInt() - 1;
                 if (choiceAssignee < 0) {
                     String Assignee = null;
-                else {
+                } else {
                     String Assignee = users.get(choiceAssignee).getUsername();
                 }
                 long timestampUndated = Instant.now().getEpochSecond();
