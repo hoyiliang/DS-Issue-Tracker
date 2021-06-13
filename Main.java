@@ -1072,10 +1072,12 @@ public class Main {
                 for (int i = 0; i < commentUndo.size(); i++) {
                     System.out.println(commentUndo.get(i).toCommentString());
                 }
+                System.out.println();
+                System.out.println();
                 System.out.println("You can undo and redo your previous change.");
                 System.out.println("1 - Undo");
                 System.out.println("2 - Redo");
-                System.out.println("Otherwise - Exit");
+                System.out.println("3 - Exit");
                 System.out.print("Input: ");
                 int choiceUR = sc.nextInt();
                 if (choiceUR == 1) {
