@@ -370,21 +370,35 @@ public class Main {
             getID = connection.getUserSize() + 1;
             System.out.print("Username: ");
             getUsername = sc.nextLine();
-            System.out.print("Password: ");
-            getPass = sc.nextLine();
-            String SecretKey = authCode.generateSecretKey();
-            users.add(new User((int) getID, getUsername, getPass, SecretKey));
-            JSONObject newUser = new JSONObject();
-            newUser.put("userid", (long) getID);
-            newUser.put("username", (String) getUsername);
-            newUser.put("password", (String) getPass);
-            usersArr.add(newUser);
-            connection.newUser(getID, getUsername, getPass, SecretKey);
-            System.out.println("================ Registration Success ================");
-            System.out.println("Your Secret Key to your account for 2FA is: " + SecretKey + ", Please create a new 2FA user in the website: ");
-            System.out.println("https://gauth.apps.gbraad.nl/#main");
+            
+            boolean userExist = false;
+            for (int i=0; i<users.size(); i++) {
+                if (getUsername.equals(users.get(i).getUsername())) {
+                    userExist = true;
+                }
+            }
+            
+            if (userExist = true) {
+                System.out.println("Username already exists, please login!");
+                
+                loginInterface(usersArr,projectsArr);
+            } else {
+                System.out.print("Password: ");
+                getPass = sc.nextLine();
+                String SecretKey = authCode.generateSecretKey();
+                users.add(new User((int) getID, getUsername, getPass, SecretKey));
+                JSONObject newUser = new JSONObject();
+                newUser.put("userid", (long) getID);
+                newUser.put("username", (String) getUsername);
+                newUser.put("password", (String) getPass);
+                usersArr.add(newUser);
+                connection.newUser(getID, getUsername, getPass, SecretKey);
+                System.out.println("================ Registration Success ================");
+                System.out.println("Your Secret Key to your account for 2FA is: " + SecretKey + ", Please create a new 2FA user in the website: ");
+                System.out.println("https://gauth.apps.gbraad.nl/#main");
 
-            loginInterface(usersArr, projectsArr);
+                loginInterface(usersArr, projectsArr);
+            }
         }
 
         System.out.println("End of Program");
