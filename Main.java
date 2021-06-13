@@ -602,7 +602,7 @@ public class Main {
                         
                         similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTitle());
                         
-                        if (similarityScore > 0.25) { // Minimum similarity score threshold (title)
+                        if (similarityScore > 0.2) { // Minimum similarity score threshold (title)
                             UnSortedSimScores.add(new FuzzySearch(similarityScore, i));
                         }
                     }
