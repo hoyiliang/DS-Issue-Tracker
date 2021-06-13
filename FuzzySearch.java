@@ -48,6 +48,9 @@ public class FuzzySearch {
     //method to calc similarity score
     public static double matchScore(String s1, String s2) {
         String longer = s1, shorter = s2;
+        if (longer.equalsIgnoreCase(shorter)) {
+            return 1.0;
+        }
         if (s1.length() < s2.length()) { // longer should always have greater length
             longer = s2;
             shorter = s1;
