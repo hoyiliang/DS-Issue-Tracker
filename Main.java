@@ -622,15 +622,11 @@ public class Main {
                     System.out.print("Enter desired tag to search for issue: ");
                     searchKey = sc.nextLine();
                     for (int i=0;i<specificProject.getIssues().size();i++) {
-                        // Checks every tags (if got multiple, resets score for each.)
-                        if (specificProject.getIssues().get(i).getTags().size() > 1) {
+                        // Checks every tags (if got multiple, resets score for each.
                             for (int j=0;j<specificProject.getIssues().get(i).getTags().size();j++) {
                                 similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTags().get(j));
                             }
-                        } else {
-                            similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTags().get(0));
-                        }
-                        
+
                         if (similarityScore >= 0.5) { // Minimum similarity score threshold (Tags)
                             UnSortedSimScores.add(new FuzzySearch(similarityScore, i));
                         }
@@ -641,17 +637,13 @@ public class Main {
                     double highestSimScore = 0.0;
                     
                     for (int i=0;i<specificProject.getIssues().size();i++) {
-                        
-                        if (specificProject.getIssues().get(i).getComments().size() > 1) {
+                        highestSimScore = 0.0;
                             for (int j=0;j<specificProject.getIssues().get(i).getComments().size();j++) {
                                 similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getComments().get(j).getText());
                                 if (similarityScore > highestSimScore) { highestSimScore = similarityScore; }
                             }
-                        } else {
-                            highestSimScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getComments().get(0).getText());
-                        }
                         
-                        if (highestSimScore > 0.1) { // Minimum similarity score threshold (comment)
+                        if (highestSimScore > 0.25) { // Minimum similarity score threshold (comment)
                             UnSortedSimScores.add(new FuzzySearch(highestSimScore, i));
                         }
                     }
