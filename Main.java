@@ -629,6 +629,7 @@ public class Main {
                         System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
                     } else {
                         System.out.format(alignFormatLeft, specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getId(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getTitle(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getStatus(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getTags().get(0), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getPriority(), datetimeFormatted, specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getAssignee(), specificProject.getIssues().get(UnSortedSimScores.get(i).getIssueIndex()).getCreatedBy());
+                        System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
                     }
                 }
                 System.out.println("Enter issue ID to check issue");
