@@ -236,17 +236,20 @@ public class Main {
                 }
             }
             
-            if (userExist == true) {
+            // If user exists,
+            if (userExist == true) {    
                 System.out.print("Password: ");
                 String password = sc.nextLine();
                 if (password.equals(getPass)) { //Login Success
-                    if (getSecretKey == null) {
+                    
+                    //Checks database if the user already has a secret key, if no, generates a new one and displays it to the user.
+                    if (getSecretKey == null) { 
                         System.out.println("New imported user, generating new Secret Key...");
                         getSecretKey = authCode.generateSecretKey();
                         System.out.println("Your new Secret Key is: " + getSecretKey + ", Please create a new 2FA user in the website: ");
                         System.out.println("https://gauth.apps.gbraad.nl/#main");
                         connection.setUser(getID, getSecretKey);
-                    } else {
+                    } else {    //Asks user for the OTP if they have a secret key associated with their account.
                         System.out.print("Enter your OTP from the website: ");
                         String OTP = sc.nextLine();
                         if (OTP.equals(authCode.getTOTPCode(getSecretKey))) {
@@ -302,7 +305,7 @@ public class Main {
                         }
                     }
 
-                    //Report Generation
+                    //  Report Generation
                     String alignFormat = "|  %-13s  | %-5d |%n";
                     for (int i = 0; i < projects.size(); i++) {
                         System.out.println("Project Name: " + projects.get(i).getName());
@@ -333,6 +336,7 @@ public class Main {
                         System.out.println();
                     }
 
+                    // Asks user if wants to export new JSON data.
                     System.out.print("Do you want to export new JSON data to a file? (y/n): ");
                     char export = sc.next().charAt(0);
                     if (export == 'y' || export == 'Y') {
@@ -357,32 +361,33 @@ public class Main {
                         }
                     }
 
-                } else { //Login fail
+                } else { //Login fail (wrong password)
                     System.out.println("====================== Failure! =======================");
                     loginInterface(usersArr, projectsArr);
                 }
-            } else {
+            } else { // User does not exist
                 System.out.println("================ User does not exist ==================");
                 loginInterface(usersArr, projectsArr);
             }
-        } else if (choiceAuth == 2) { //Registration
+          // Registration part
+        } else if (choiceAuth == 2) { 
             System.out.println("==================== Registration ====================");
             getID = connection.getUserSize() + 1;
-            System.out.print("Username: ");
+            System.out.print("Username: ");     // Request for username
             getUsername = sc.nextLine();
             
+            // Check if user is already exist in runtime/db data
             boolean userExist = false;
             for (int i=0; i<users.size(); i++) {
                 if (getUsername.equals(users.get(i).getUsername())) {
                     userExist = true;
                 }
             }
-            
-            if (userExist = true) {
+            if (userExist = true) { // Jump back to authentication board if user exist
                 System.out.println("Username already exists, please login!");
                 
                 loginInterface(usersArr,projectsArr);
-            } else {
+            } else {    // Request for password.
                 System.out.print("Password: ");
                 getPass = sc.nextLine();
                 String SecretKey = authCode.generateSecretKey();
@@ -393,6 +398,8 @@ public class Main {
                 newUser.put("password", (String) getPass);
                 usersArr.add(newUser);
                 connection.newUser(getID, getUsername, getPass, SecretKey);
+                
+                // (2FA) Display secret key to user for them to register in the website to get OTP codes in the future.
                 System.out.println("================ Registration Success ================");
                 System.out.println("Your Secret Key to your account for 2FA is: " + SecretKey + ", Please create a new 2FA user in the website: ");
                 System.out.println("https://gauth.apps.gbraad.nl/#main");
@@ -407,7 +414,7 @@ public class Main {
 
     public static JSONArray projectBoard(JSONArray projectsArr, User programUser, int recurseCheck) {
 
-        if (recurseCheck == 0) {
+        if (recurseCheck == 0) {    // An insurance to ensure no infinite recursive loop.
             return projectsArr;
         } else {
             String alignFormatLeft = "| %-2d | %-16s | %-6d |%n";
@@ -429,12 +436,12 @@ public class Main {
             System.out.print("Input: ");
             String input = sc.next();
 
-            // Search or Create new?
-            try {
-
+            // Select or Create new?
+            try { //Try to parse input to integer (Select)
+                
                 int projectSel = Integer.parseInt(input) - 1;
                 boolean confirmExitIssueCore = false;
-                JSONArray projectIssues = issueCore(projects.get(projectSel), programUser, 1);
+                JSONArray projectIssues = issueCore(projects.get(projectSel), programUser, 1);  // Enters Issue Dashboard (issueCore)
 
                 // Recurse patch to exit to ProjectBoard
                 while (confirmExitIssueCore == false) {
@@ -447,6 +454,7 @@ public class Main {
                     }
                 }
 
+                // update Project data in all forms. (runtime, JSON, SQL)
                 long id = projects.get(projectSel).getId();
                 String projectName = projects.get(projectSel).getName();
                 Project modifiedProjectIndex = new Project(id, projectName, projectIssues);
@@ -460,8 +468,8 @@ public class Main {
                 newProjectIndex.put("issues", (JSONArray) projectIssues);
                 projectsArr.set(projectSel, newProjectIndex);
 
-                projectsArr = projectBoard(projectsArr, programUser, recurseCheck);
-                return projectsArr;
+                projectsArr = projectBoard(projectsArr, programUser, recurseCheck); // Recurse project board with updated data.
+                return projectsArr;     // No matter how many recurse, at the end newest data will be returned.
 
             } catch (NumberFormatException e) {
                 // Create new project
@@ -474,10 +482,10 @@ public class Main {
 
                     // Add project data in runtime
                     projects.add(new Project(id, projectName, projectIssues));
-                    // Recursion issueBoard START
+                    // Recursion issueCore START 
                     projectIssues = issueCore(projects.get(projects.size() - 1), programUser, 1);
 
-                    // Add project data in json syntax
+                    // Add project data in all forms (JSON, SQL)
                     JSONObject newProject = new JSONObject();
                     newProject.put("id", (long) id);
                     newProject.put("name", (String) projectName);
@@ -485,25 +493,25 @@ public class Main {
                     projectsArr.add(newProject);
                     connection.newProject(connection.getProjectSize() + 1, projectName, projectIssues.toJSONString());
 
-                    // Recursing projectBoard
+                    // Recursing projectBoard with new project data
                     projectsArr = projectBoard(projectsArr, programUser, recurseCheck);
 
                 } else if (input.equalsIgnoreCase("exit")) {
                     recurseCheck = 0;
                 } else {
                     System.out.println("Unknown command.");
-                    projectsArr = projectBoard(projectsArr, programUser, recurseCheck);
+                    projectsArr = projectBoard(projectsArr, programUser, recurseCheck); // Recurse if unknown command, using back current latest data
                 }
-                return projectsArr;
+                return projectsArr; // Insurance to ensure newest project data is returned.
             }
         }
     }
 
     // Contains all about issues
     public static JSONArray issueCore(Project specificProject, User programUser, int recurseCheck) {
-        JSONArray projectIssues = specificProject.getIssuesArr();
+        JSONArray projectIssues = specificProject.getIssuesArr();   // For updating JSON data purpose later.
 
-        if (recurseCheck == 0) {
+        if (recurseCheck == 0) { // Insurance.
             return projectIssues;
         } else {
             String alignFormatLeft = "| %-2d | %-32s | %-11s | %-18s | %-8d | %-16s | %-8s | %-10s |%n";
@@ -528,6 +536,8 @@ public class Main {
                     System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+%n");
                 }
             }
+            
+            // Asks user if they want sort.
             int sortCheck = 0;
             System.out.println("Specify your sorting preference: ");
             System.out.println("'1'       - Sort by Priority");
@@ -577,7 +587,7 @@ public class Main {
             sc.nextLine();
             String issueInput = sc.nextLine();
 
-            //Search Issue (Fuzzy)
+            //Search Issue (Fuzzy, Levenshtein algo)
             if (issueInput.equalsIgnoreCase("s")) {
                 ArrayList<FuzzySearch> UnSortedSimScores = new ArrayList<>();
                 String searchKey;
@@ -592,7 +602,7 @@ public class Main {
                         
                         similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTitle());
                         
-                        if (similarityScore > 0.25) {
+                        if (similarityScore > 0.25) { // Minimum similarity score threshold (title)
                             UnSortedSimScores.add(new FuzzySearch(similarityScore, i));
                         }
                     }
@@ -604,7 +614,7 @@ public class Main {
                         
                         similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getDescriptionText());
                         
-                        if (similarityScore > 0.1) {
+                        if (similarityScore > 0.05) { // Minimum similarity score threshold (description)
                             UnSortedSimScores.add(new FuzzySearch(similarityScore, i));
                         }
                     }
@@ -612,7 +622,7 @@ public class Main {
                     System.out.print("Enter desired tag to search for issue: ");
                     searchKey = sc.nextLine();
                     for (int i=0;i<specificProject.getIssues().size();i++) {
-                        
+                        // Checks every tags (if got multiple, resets score for each.)
                         if (specificProject.getIssues().get(i).getTags().size() > 1) {
                             for (int j=0;j<specificProject.getIssues().get(i).getTags().size();j++) {
                                 similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTags().get(j));
@@ -621,7 +631,7 @@ public class Main {
                             similarityScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTags().get(0));
                         }
                         
-                        if (similarityScore >= 0.9) {
+                        if (similarityScore >= 0.5) { // Minimum similarity score threshold (Tags)
                             UnSortedSimScores.add(new FuzzySearch(similarityScore, i));
                         }
                     }
@@ -641,13 +651,16 @@ public class Main {
                             highestSimScore = FuzzySearch.matchScore(searchKey, specificProject.getIssues().get(i).getTags().get(0));
                         }
                         
-                        if (highestSimScore > 0.15) {
+                        if (highestSimScore > 0.1) { // Minimum similarity score threshold (comment)
                             UnSortedSimScores.add(new FuzzySearch(highestSimScore, i));
                         }
                     }
                 }
                 
+                // sort by similarity score.
                 UnSortedSimScores.sort(Comparator.comparingDouble(FuzzySearch::getSimScore).reversed());
+                
+                // displays the search results.
                 System.out.println("Search Results: (Similarity Score sorted in Descending order)\n---------------\n");
                 System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
                 System.out.format("| ID |              Title               |   Status    |        Tag         | Priority |       Time       | Assignee | CreatedBy  |\n");
@@ -666,35 +679,40 @@ public class Main {
                         System.out.format("+----+----------------------------------+-------------+--------------------+----------+------------------+----------+------------+\n");
                     }
                 }
+                
+                // input without search.
                 System.out.println("Enter issue ID to check issue");
                 System.out.println("or 'c' to create issue");
                 System.out.println("or 'exit' to logout and shutdown the program");
                 System.out.print("Input: ");
                 issueInput = sc.nextLine();
                 
+                // check exit command (search)
                 if (issueInput.equalsIgnoreCase("exit")) {
                     recurseCheck = 0;
-                } else {
+                } else {    // pass to issuePage to identify input (search)
                     projectIssues = issuePage(specificProject, programUser, issueInput, specificProject.getIssuesArr());
                 }
             }
+            // check exit command
             else if (issueInput.equalsIgnoreCase("exit")) {
                 recurseCheck = 0;
-            } else {
+            } else { // pass to issuePage to identify input
                 projectIssues = issuePage(specificProject, programUser, issueInput, specificProject.getIssuesArr());
             }
         }
-        return projectIssues;
+        return projectIssues; // Insurance.
     }
 
     public static JSONArray issuePage(Project specificProject, User programUser, String issueInput, JSONArray projectIssues) {
         //Issue page
-        try {
-
+        try { // try to parse input as a number.
+            
             int issueSel = Integer.parseInt(issueInput) - 1;
 
-            JSONArray commentsArr = specificProject.getIssues().get(issueSel).getCommentsArr();
-
+            JSONArray commentsArr = specificProject.getIssues().get(issueSel).getCommentsArr(); // for updating issue json data use.
+            
+            // displays specific issue information
             SimpleDateFormat FormatPattern = new SimpleDateFormat("yyyy/MM/dd hh:mm");
             String datetimeFormatted = FormatPattern.format(specificProject.getIssues().get(issueSel).getTimestamp());
             System.out.println("Issue ID: " + specificProject.getIssues().get(issueSel).getId() + "\tStatus: " + specificProject.getIssues().get(issueSel).getStatus());
@@ -706,6 +724,8 @@ public class Main {
             System.out.println("Issue Description\n-----------------");
             System.out.format(specificProject.getIssues().get(issueSel).getDescriptionText() + "\n");
             System.out.println("Comments\n---------");
+            
+            // formatting to display all the comments.
             for (int i = 0; i < specificProject.getIssues().get(issueSel).getComments().size(); i++) {
                 System.out.println("#" + specificProject.getIssues().get(issueSel).getComments().get(i).getCommentId() + "\tCreated on: " + FormatPattern.format(specificProject.getIssues().get(issueSel).getComments().get(i).getTimestamp()) + "\tBy: " + specificProject.getIssues().get(issueSel).getComments().get(i).getUser());
                 System.out.println(specificProject.getIssues().get(issueSel).getComments().get(i).getText());
@@ -733,25 +753,33 @@ public class Main {
                 System.out.println("");
             }
 
+            // issue page user inputs.
             System.out.println("Enter");
             System.out.println("'r' to react");
             System.out.println("'c' to comment");
             System.out.println("or 'help' for more commands: ");
             System.out.print("Input: ");
             String choiceAction = sc.nextLine();
-            if (choiceAction.equalsIgnoreCase("r")) {
+            
+            // checks the input matches any existing commands
+            if (choiceAction.equalsIgnoreCase("r")) {   // react command
                 System.out.println("Which comment you want to react?");
                 System.out.print("Enter comment ID: ");
                 int choiceCmtID = sc.nextInt() - 1;
-
+                
+                // asks reaction type
                 System.out.println("What reaction you want to react with?");
                 System.out.print("1-angry, 2-happy, 3-thumbsUp: ");
                 int choiceReact = sc.nextInt() - 1;
+                
+                // if thumbsUp not exist in this issue.
                 if (specificProject.getIssues().get(issueSel).getComments().get(choiceCmtID).getReact().size() < 3 && choiceReact == 2) {
                     specificProject.getIssues().get(issueSel).getComments().get(choiceCmtID).getReact().add(new React("thumbsUp", 0));
                 }
+                // adds count of that react
                 specificProject.getIssues().get(issueSel).getComments().get(choiceCmtID).getReact().get(choiceReact).setCount(specificProject.getIssues().get(issueSel).getComments().get(choiceCmtID).getReact().get(choiceReact).getCount() + 1);
 
+                // update json data. (reactArr)
                 JSONArray reactArr = specificProject.getIssues().get(issueSel).getComments().get(choiceCmtID).getReactArr();
                 JSONObject newReactIndex = new JSONObject();
                 newReactIndex.put("reaction", (String) specificProject.getIssues().get(issueSel).getComments().get(choiceCmtID).getReact().get(choiceReact).getReaction());
@@ -762,6 +790,7 @@ public class Main {
                     reactArr.set(choiceReact, (JSONObject) newReactIndex);
                 }
 
+                // update json data. (commentsArr)
                 JSONObject newCommentIndex = new JSONObject();
                 newCommentIndex.put("comment_id", (long) choiceCmtID);
                 newCommentIndex.put("text", (String) specificProject.getIssues().get(issueSel).getComments().get(choiceCmtID).getText());
@@ -770,6 +799,7 @@ public class Main {
                 newCommentIndex.put("user", specificProject.getIssues().get(issueSel).getComments().get(choiceCmtID).getUser());
                 commentsArr.set(choiceCmtID, (JSONObject) newCommentIndex);
 
+                // update json data. (projectIssues)
                 JSONObject newIssueIndex = new JSONObject();
                 newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
                 newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
@@ -783,16 +813,24 @@ public class Main {
                 newIssueIndex.put("comments", (JSONArray) commentsArr);
                 projectIssues.set(issueSel, newIssueIndex);
 
+                // displays to user what they have done.
                 System.out.println("You reacted to the comment with: " + specificProject.getIssues().get(issueSel).getComments().get(choiceCmtID).getReact().get(choiceReact).getReaction());
                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                 return projectIssues;
 
-            } else if (choiceAction.equalsIgnoreCase("c")) {
+            } else if (choiceAction.equalsIgnoreCase("c")) {    // create new comment.
+                // get new comment id
                 int newCommentID = specificProject.getIssues().get(issueSel).getComments().size() + 1;
+                
+                // user enter comment text.
                 System.out.println("Enter your comment text: \nHint: Use escape characters like backslash t or n to apply formatting for display\n");
                 sc.nextLine();
                 String newText = sc.nextLine();
+                
+                // fix Scanner auto escape String input
                 newText = StringEscapeUtils.unescapeJava(newText);
+                
+                // create new reactArr json data to this new comment.
                 JSONArray newReactArr = new JSONArray();
                 ////////////////////////////////////////////////////////
                 JSONObject newReactAngry = new JSONObject();
@@ -809,9 +847,12 @@ public class Main {
                 newReactArr.add(newReactHappy);
                 newReactArr.add(newReactthumbsUp);
                 ////////////////////////////////////////////////////////
+                
+                // other comment information needed to create new comment
                 long newTimestampUndated = Instant.now().getEpochSecond();
                 String user = programUser.getUsername();
 
+                // creating new json data for comment.
                 JSONObject newCommentIndex = new JSONObject();
                 newCommentIndex.put("comment_id", (long) newCommentID);
                 newCommentIndex.put("text", (String) newText);
@@ -820,6 +861,7 @@ public class Main {
                 newCommentIndex.put("user", (String) user);
                 commentsArr.add(newCommentIndex);
 
+                // Updating json data for projectIssues.
                 JSONObject newIssueIndex = new JSONObject();
                 newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
                 newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
@@ -833,13 +875,14 @@ public class Main {
                 newIssueIndex.put("comments", (JSONArray) commentsArr);
                 projectIssues.set(issueSel, newIssueIndex);
 
+                // add in runtime data.
                 specificProject.getIssues().get(issueSel).getComments().add(new Comment(newCommentID, newText, newReactArr, newTimestampUndated, user));
 
                 System.out.println("Comment successfully posted.");
-                projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
-                return projectIssues;
+                projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues); // returns to issuePage with new data.
+                return projectIssues;   // no matter what, returns newest data.
 
-            } else if (choiceAction.equalsIgnoreCase("help")) {
+            } else if (choiceAction.equalsIgnoreCase("help")) { // displays all commands.
                 System.out.println("List of all commands: ");
                 System.out.println("--[ General ]-----------------------------------------------------------------------");
                 System.out.println("'help'    - Displays this list");
@@ -859,14 +902,15 @@ public class Main {
                 sc.nextLine();
                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                 return projectIssues;
-
-            } else if (choiceAction.equalsIgnoreCase("open")) {
-                if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername())) {
-                    if (specificProject.getIssues().get(issueSel).getStatus().equals("Open")) {
+            
+            // all about issue status (open, close, inprogress, etc.)
+            } else if (choiceAction.equalsIgnoreCase("open")) {     // change status to open/reopened
+                if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername())) {   // Check ownership
+                    if (specificProject.getIssues().get(issueSel).getStatus().equals("Open")) { // if same, return
                         System.out.println("This issue's status is currently Open!");
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
-                    } else {
+                    } else {        // if its already closed it will become reopened instead of open
                         if (specificProject.getIssues().get(issueSel).getStatus().equals("Closed")) {
                             System.out.println("Reopening Issue...");
                             specificProject.getIssues().get(issueSel).setStatus("Reopened");
@@ -877,6 +921,7 @@ public class Main {
                             System.out.println("Issue status set to: Open");
                         }
 
+                        // update json data (projectIssues)
                         JSONObject newIssueIndex = new JSONObject();
                         newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
                         newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
@@ -893,21 +938,24 @@ public class Main {
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     }
-                } else {
+                } else {    // reject command deny access.
                     System.out.println("You do not have permission. (not issue owner)");
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
 
-            } else if (choiceAction.equalsIgnoreCase("progress")) {
+            } else if (choiceAction.equalsIgnoreCase("progress")) { // change status to in progress
+                // check ownership/assignee
                 if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername()) || specificProject.getIssues().get(issueSel).getAssignee().equals(programUser.getUsername())) {
-                    if (specificProject.getIssues().get(issueSel).getStatus().equals("In Progress")) {
+                    if (specificProject.getIssues().get(issueSel).getStatus().equals("In Progress")) {  // if same, return
                         System.out.println("This issue's status is currently In Progress!");
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     } else {
+                        // update runtime data
                         specificProject.getIssues().get(issueSel).setStatus("In Progress");
-
+                        
+                        // update json data
                         JSONObject newIssueIndex = new JSONObject();
                         newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
                         newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
@@ -926,21 +974,23 @@ public class Main {
                         return projectIssues;
 
                     }
-                } else {
+                } else {    // deny access.
                     System.out.println("You do not have permission. (not issue owner nor assignee)");
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
 
-            } else if (choiceAction.equalsIgnoreCase("close")) {
-                if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername())) {
-                    if (specificProject.getIssues().get(issueSel).getStatus().equals("Close")) {
+            } else if (choiceAction.equalsIgnoreCase("close")) {    // change status to close
+                if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername())) {   // check ownership
+                    if (specificProject.getIssues().get(issueSel).getStatus().equals("Close")) {    //if same, return.
                         System.out.println("This issue's status is currently Closed!");
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     } else {
+                        // update runtime data
                         specificProject.getIssues().get(issueSel).setStatus("Closed");
 
+                        // update json data
                         JSONObject newIssueIndex = new JSONObject();
                         newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
                         newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
@@ -959,21 +1009,24 @@ public class Main {
                         return projectIssues;
 
                     }
-                } else {
+                } else {    // deny access.
                     System.out.println("You do not have permission. (not issue owner)");
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
 
-            } else if (choiceAction.equalsIgnoreCase("resolve")) {
+            } else if (choiceAction.equalsIgnoreCase("resolve")) {  // change status to resolved.
+                // check ownership/assignee
                 if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername()) || specificProject.getIssues().get(issueSel).getAssignee().equals(programUser.getUsername())) {
-                    if (specificProject.getIssues().get(issueSel).getStatus().equals("Resolved")) {
+                    if (specificProject.getIssues().get(issueSel).getStatus().equals("Resolved")) { //if same, return
                         System.out.println("This issue's status is currently Resolved!");
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     } else {
+                        // update runtime data
                         specificProject.getIssues().get(issueSel).setStatus("Resolved");
 
+                        // update json data
                         JSONObject newIssueIndex = new JSONObject();
                         newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
                         newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
@@ -992,20 +1045,27 @@ public class Main {
                         return projectIssues;
 
                     }
-                } else {
+                } else {    //deny access.
                     System.out.println("You do not have permission. (not issue owner nor assignee)");
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
 
-            } else if (choiceAction.equalsIgnoreCase("edit")) {
+            } else if (choiceAction.equalsIgnoreCase("edit")) { // edit description or comment
                 dateEdited = new SimpleDateFormat("yyyy.MM.dd.HH:mm").format(new java.util.Date());
+                
+                //asks what to edit
                 System.out.println("What do you want to edit in this issue?");
                 System.out.println("1-Issue Desc, 2-Comments");
                 int choiceEdit = sc.nextInt();
+                
+                // edit issue description
                 if (choiceEdit == 1) {
-                    if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername())) {
+                    if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername())) {   // check ownership
+                        // clear undo redo runtime clipboard
                         issueDescRedo.clear();
+                        
+                        // shows preview of old and new desc text.
                         System.out.println("Original Issue Description\n--------------------------");
                         System.out.println(specificProject.getIssues().get(issueSel).getDescriptionText());
                         String old = specificProject.getIssues().get(issueSel).getDescriptionText();
@@ -1015,8 +1075,11 @@ public class Main {
                         String newDescText = sc.nextLine();
                         newDescText = StringEscapeUtils.unescapeJava(newDescText);
                         specificProject.getIssues().get(issueSel).setDescriptionText(newDescText);
+                        
+                        // add new undo to runtime clipboard
                         issueDescUndo.push(new UndoRedo(specificProject.getName(), specificProject.getIssues().get(issueSel).getTitle(), old, newDescText, dateEdited));
 
+                        // update json data and runtime data
                         JSONObject newIssueIndex = new JSONObject();
                         newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
                         newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
@@ -1034,18 +1097,25 @@ public class Main {
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
 
-                    } else {
+                    } else {    //deny access.
                         System.out.println("You do not have permission. (not issue owner)");
                         sc.nextLine();
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     }
+                // edit comment
                 } else if (choiceEdit == 2) {
+                    
+                    //asks which comment to edit
                     System.out.println("Which comment you want to edit? (only comment belongs to yours is allowed)");
                     System.out.print("Comment ID: ");
                     int editCmtID = sc.nextInt() - 1;
-                    if (specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getUser().equals(programUser.getUsername())) {
+                    if (specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getUser().equals(programUser.getUsername())) { //check ownership
+                        
+                        // clear undo redo comment runtime clipboard
                         commentRedo.clear();
+                        
+                        // display preview before and after edit.
                         System.out.println("Original comment text\n---------------------");
                         System.out.println(specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText());
                         String oldComment = specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText();
@@ -1055,8 +1125,10 @@ public class Main {
                         String newCmtText = sc.nextLine();
                         newCmtText = StringEscapeUtils.unescapeJava(newCmtText);
                         specificProject.getIssues().get(issueSel).getComments().get(editCmtID).setText(newCmtText);
+                        // add undo redo comment runtime clipboard
                         commentUndo.push(new UndoRedo(specificProject.getName(), specificProject.getIssues().get(issueSel).getTitle(), editCmtID, oldComment, newCmtText, dateEdited));
 
+                        // update json data (comments)
                         JSONObject newCommentIndex = new JSONObject();
                         newCommentIndex.put("comment_id", (long) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getCommentId());
                         newCommentIndex.put("text", (String) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getText());
@@ -1065,6 +1137,7 @@ public class Main {
                         newCommentIndex.put("user", (String) specificProject.getIssues().get(issueSel).getComments().get(editCmtID).getUser());
                         commentsArr.set(editCmtID, newCommentIndex);
 
+                        // update json data (issue)
                         JSONObject newIssueIndex = new JSONObject();
                         newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
                         newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
@@ -1081,19 +1154,20 @@ public class Main {
                         System.out.println("Editing successful.");
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
-                    } else {
-                        System.out.println("You do not have permission. (not issue owner)");
+                    } else {    // deny access
+                        System.out.println("You do not have permission. (not issue comment owner)");
                         sc.nextLine();
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     }
-                } else {
+                } else {    //unknown choice.
                     System.out.println("Invalid choice!");
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
 
-            } else if (choiceAction.equalsIgnoreCase("changes")) {
+            } else if (choiceAction.equalsIgnoreCase("changes")) {  // runtime changelog
+                // display changelog
                 System.out.println("Edit history of issue description");
                 System.out.println("===========================================================");
                 for (int i = 0; i < issueDescUndo.size(); i++) {
@@ -1108,17 +1182,24 @@ public class Main {
                 }
                 System.out.println();
                 System.out.println();
+                
+                // changelog user input
                 System.out.println("You can undo and redo your previous change.");
                 System.out.println("1 - Undo");
                 System.out.println("2 - Redo");
                 System.out.println("3 - Exit");
                 System.out.print("Input: ");
                 int choiceUR = sc.nextInt();
-                if (choiceUR == 1) {
+                
+                if (choiceUR == 1) {    // undo changes
+                    
+                    //ask what type of changes.
                     System.out.println("1 - Issue Desc, 2 - Comments");
                     int choiceUndo = sc.nextInt();
-                    if (choiceUndo == 1) {
+                    if (choiceUndo == 1) {  // Issue description undo
                         if (!issueDescUndo.isEmpty()) {
+                            
+                            //display preview before and after
                             System.out.println("Preview of previous issue description: ");
                             System.out.println(issueDescUndo.peek().getOldIssueDesc());
                             System.out.println("Edited issue description: ");
@@ -1128,8 +1209,11 @@ public class Main {
                             sc.nextLine();
                             String undoIssueText = issueDescUndo.peek().getOldIssueDesc();
                             specificProject.getIssues().get(issueSel).setDescriptionText(undoIssueText);
+                            
+                            //update runtime undo redo clipboard
                             issueDescRedo.push(issueDescUndo.pop());
 
+                            // update runtime and json data
                             JSONObject newIssueIndex = new JSONObject();
                             newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
                             newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
@@ -1145,14 +1229,16 @@ public class Main {
 
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
-                        } else {
+                        } else {    // if changelog is empty
                             System.out.println("You have nothing to undo");
                             sc.nextLine();
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
                         }
-                    } else if (choiceUndo == 2) {
+                    } else if (choiceUndo == 2) {   // Issue comments undo.
                         if (!commentUndo.isEmpty()) {
+                            
+                            // display preview before and after
                             System.out.println("Preview of previous comment: ");
                             System.out.println(commentUndo.peek().getOldComment());
                             System.out.println("Edited comment: ");
@@ -1188,18 +1274,22 @@ public class Main {
 
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
-                        } else {
+                        } else {        // if changelog empty
                             System.out.println("You have nothing to undo");
                             sc.nextLine();
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
                         }
                     }
-                } else if (choiceUR == 2) {
+                } else if (choiceUR == 2) { //redo changes
+                    
+                    //ask for what type of changes
                     System.out.println("1 - Issue Desc, 2 - Comments");
                     int choiceRedo = sc.nextInt();
-                    if (choiceRedo == 1) {
+                    if (choiceRedo == 1) {  // Issue description
                         if (!issueDescRedo.isEmpty()) {
+                            
+                            // display preview before and after changes
                             System.out.println("Preview of previous issue description: ");
                             System.out.println(issueDescRedo.peek().getNewIssueDesc());
                             System.out.println("Edited issue description: ");
@@ -1209,8 +1299,11 @@ public class Main {
                             sc.nextLine();
                             String redoIssueText = issueDescRedo.peek().getNewIssueDesc();
                             specificProject.getIssues().get(issueSel).setDescriptionText(redoIssueText);
+                            
+                            // update runtime undo redo clipboard
                             issueDescUndo.push(issueDescRedo.pop());
 
+                            // update json and runtime data
                             JSONObject newIssueIndex = new JSONObject();
                             newIssueIndex.put("id", (long) specificProject.getIssues().get(issueSel).getId());
                             newIssueIndex.put("title", (String) specificProject.getIssues().get(issueSel).getTitle());
@@ -1227,14 +1320,16 @@ public class Main {
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
 
-                        } else {
+                        } else {    // if changelog empty
                             System.out.println("You have nothing to redo");
                             sc.nextLine();
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
                         }
-                    } else if (choiceRedo == 2) {
+                    } else if (choiceRedo == 2) {   // redo comment
                         if (!commentRedo.isEmpty()) {
+                            
+                            //preview changes before after
                             System.out.println("Preview of previous comment: ");
                             System.out.println(commentRedo.peek().getNewComment());
                             System.out.println("Edited comment: ");
@@ -1245,8 +1340,11 @@ public class Main {
                             String redoCommentText = commentRedo.peek().getNewComment();
                             int redoCommentId = commentUndo.peek().getCommentId();
                             specificProject.getIssues().get(issueSel).getComments().get(redoCommentId).setText(redoCommentText);
+                            
+                            // update runtime undo redo clipboard
                             commentUndo.push(commentRedo.pop());
 
+                            // update runtime and json data
                             JSONObject newCommentIndex = new JSONObject();
                             newCommentIndex.put("comment_id", (long) specificProject.getIssues().get(issueSel).getComments().get(redoCommentId).getCommentId());
                             newCommentIndex.put("text", (String) specificProject.getIssues().get(issueSel).getComments().get(redoCommentId).getText());
@@ -1270,38 +1368,38 @@ public class Main {
 
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
-                        } else {
+                        } else {    // if changelog empty
                             System.out.println("You have nothing to redo");
                             sc.nextLine();
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
                         }
                     }
-                } else {
+                } else {    // other than 1 and 2
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
-            } else if (choiceAction.equalsIgnoreCase("exit")) {
+            } else if (choiceAction.equalsIgnoreCase("exit")) { // exit back to issue dashboard with updated data
                 projectIssues = issueCore(specificProject, programUser, 1);
                 return projectIssues;
-            } else {
+            } else {    // return to issue page due to unknown command
                 System.out.println("Unknown command.");
                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                 return projectIssues;
             }
 
 
-        } catch (NumberFormatException eee) {
-
-            // Search issue
-            if (issueInput.equalsIgnoreCase("s")) {
-                System.out.println("Search: not implemented yet.");
-            } // Create new issue
-            else if (issueInput.equalsIgnoreCase("c")) {
+        } catch (NumberFormatException eee) {   // if the issueInput is not number to select, check for other commands available.
+           
+            if (issueInput.equalsIgnoreCase("c")) { // Create new issue
+                
+                //all variables required to create a new issue
                 long id = specificProject.getIssues().size() + 1;
                 System.out.print("Enter new issue Title: ");
                 String title = sc.nextLine();
                 String status = "Open";
+                
+                //save issue tags from user
                 System.out.print("Enter new issue Tags: (use spaces to split tags if required)");
                 String tagsUnsafe = sc.nextLine();
                 String[] tagsSafe = tagsUnsafe.split(" ");
@@ -1309,10 +1407,12 @@ public class Main {
                 for (int i = 0; i < tagsSafe.length; i++) {
                     Tags.add((String) tagsSafe[i]);
                 }
+                //save issue priority from user
                 System.out.print("Specify priority of this issue: ");
                 int priority = sc.nextInt();
                 long timestamp = Instant.now().getEpochSecond();
                 String createdBy = programUser.getUsername();
+                // set an assignee
                 System.out.println("Available assignees:");
                 String alignFormatLeft = "| %-2d | %-16s |%n";
                 System.out.println("+----+------------------+");
@@ -1322,16 +1422,22 @@ public class Main {
                     System.out.format(alignFormatLeft, users.get(i).getUserid(), users.get(i).getUsername());
                     System.out.println("+----+------------------+");
                 }
-                System.out.print("Choose by User ID: ");
+                System.out.print("Choose by User ID (0 for null): ");
                 int choiceAssignee = sc.nextInt() - 1;
-                String Assignee = users.get(choiceAssignee).getUsername();
+                if (choiceAssignee < 0) {
+                    String Assignee = null;
+                else {
+                    String Assignee = users.get(choiceAssignee).getUsername();
+                }
                 long timestampUndated = Instant.now().getEpochSecond();
                 JSONArray comments = new JSONArray();
+                // get description text for issue
                 System.out.println("Description of the issue: \n(Hint!: escape characters like backslash t or n can be used)\n");
                 sc.nextLine();
                 String descText = sc.nextLine();
                 descText = StringEscapeUtils.unescapeJava(descText);
 
+                // update new json data and runtime data (issues)
                 JSONObject newIssueIndex = new JSONObject();
                 newIssueIndex.put("id", (long) id);
                 newIssueIndex.put("title", (String) title);
@@ -1350,14 +1456,14 @@ public class Main {
                 System.out.println("Issue created successfully.");
                 projectIssues = issueCore(specificProject, programUser, 1);
 
-            } else if (issueInput.equalsIgnoreCase("exit")) {
+            } else if (issueInput.equalsIgnoreCase("exit")) {   // back to issue dashboard
                 projectIssues = issueCore(specificProject, programUser, 0);
-            } else {
+            } else {    // unknown command, back to issue dashboard
                 System.out.println("Unknown command.");
                 projectIssues = issueCore(specificProject, programUser, 1);
             }
         }
-        return projectIssues;
+        return projectIssues;   //insurance
     }
 
     public static void newTime(int comID) {
