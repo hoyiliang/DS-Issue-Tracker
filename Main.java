@@ -658,7 +658,7 @@ public class Main {
                 }
                 
                 // sort by similarity score.
-                UnSortedSimScores.sort(Comparator.comparingDouble(FuzzySearch::getSimScore).reversed());
+                UnSortedSimScores.sort(Comparator.comparingDouble(FuzzySearch::getSimScore));
                 
                 // displays the search results.
                 System.out.println("Search Results: (Similarity Score sorted in Descending order)\n---------------\n");
