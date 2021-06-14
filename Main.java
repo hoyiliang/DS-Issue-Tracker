@@ -1377,7 +1377,7 @@ public class Main {
                             String choice = sc.nextLine();
                             if(choice.equalsIgnoreCase("y")) {
                                 String redoCommentText = commentRedo.peek().getNewComment();
-                                int redoCommentId = commentUndo.peek().getCommentId();
+                                int redoCommentId = commentRedo.peek().getCommentId();
                                 specificProject.getIssues().get(issueSel).getComments().get(redoCommentId).setText(redoCommentText);
 
                                 // update runtime undo redo clipboard
