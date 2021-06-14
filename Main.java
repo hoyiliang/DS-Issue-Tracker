@@ -382,7 +382,7 @@ public class Main {
                     userExist = true;
                 }
             }
-            if (userExist = true) { // Jump back to authentication board if user exist
+            if (userExist == true) { // Jump back to authentication board if user exist
                 System.out.println("Username already exists, please login!");
                 
                 loginInterface(usersArr,projectsArr);
