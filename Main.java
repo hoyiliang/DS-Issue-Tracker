@@ -1,4 +1,4 @@
-package DSPack;
+package javaapplication1;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -16,7 +16,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -88,6 +88,8 @@ public class Main {
             JSONObject jo = (JSONObject) jp.parse(new FileReader(filepath));
             JSONArray JSONprojectsArr = (JSONArray) jo.get("projects");
             JSONArray JSONusersArr = (JSONArray) jo.get("users");
+            
+            System.out.println("JSON import successfully.");
             
             //Reading changelog data
             if (jo.containsKey("changelog")) {
@@ -593,7 +595,7 @@ public class Main {
             System.out.println("Enter selected issue ID to check issue");
             System.out.println("or 's' to search");
             System.out.println("or 'c' to create issue");
-            System.out.println("or 'exit' to logout and shutdown the program");
+            System.out.println("or 'exit' to back to Project Board");
             System.out.print("Input: ");
             sc.nextLine();
             String issueInput = sc.nextLine();
@@ -822,6 +824,7 @@ public class Main {
 
                 // displays to user what they have done.
                 System.out.println("You reacted to the comment with: " + specificProject.getIssues().get(issueSel).getComments().get(choiceCmtID).getReact().get(choiceReact).getReaction());
+                sc.nextLine();
                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                 return projectIssues;
 
@@ -1045,6 +1048,8 @@ public class Main {
                 if (specificProject.getIssues().get(issueSel).getCreatedBy().equals(programUser.getUsername()) || specificProject.getIssues().get(issueSel).getAssignee().equals(programUser.getUsername())) {
                     if (specificProject.getIssues().get(issueSel).getStatus().equals("Resolved")) { //if same, return
                         System.out.println("This issue's status is currently Resolved!");
+                        System.out.println("Press Enter to continue...");
+                        sc.nextLine();
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     } else {
@@ -1066,12 +1071,16 @@ public class Main {
                         projectIssues.set(issueSel, newIssueIndex);
 
                         System.out.println("Issue status set to: Resolved");
+                        System.out.println("Press Enter to continue...");
+                        sc.nextLine();
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
 
                     }
                 } else {    //deny access.
                     System.out.println("You do not have permission. (not issue owner nor assignee)");
+                    System.out.println("Press Enter to continue...");
+                    sc.nextLine();
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
@@ -1119,11 +1128,15 @@ public class Main {
                         projectIssues.set(issueSel, newIssueIndex);
 
                         System.out.println("Editing successful.");
+                        System.out.println("Press Enter to continue...");
+                        sc.nextLine();
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
 
                     } else {    //deny access.
                         System.out.println("You do not have permission. (not issue owner)");
+                        sc.nextLine();
+                        System.out.println("Press Enter to continue...");
                         sc.nextLine();
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
@@ -1177,16 +1190,22 @@ public class Main {
                         projectIssues.set(issueSel, newIssueIndex);
 
                         System.out.println("Editing successful.");
+                        System.out.println("Press Enter to continue...");
+                        sc.nextLine();
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     } else {    // deny access
                         System.out.println("You do not have permission. (not issue comment owner)");
+                        sc.nextLine();
+                        System.out.println("Press Enter to continue...");
                         sc.nextLine();
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     }
                 } else {    //unknown choice.
                     System.out.println("Invalid choice!");
+                    System.out.println("Press Enter to continue...");
+                    sc.nextLine();
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
@@ -1253,15 +1272,22 @@ public class Main {
                                 newIssueIndex.put("comments", (JSONArray) commentsArr);
                                 projectIssues.set(issueSel, newIssueIndex);
 
+                                System.out.println("Undo success.");
+                                System.out.println("Press Enter to continue...");
+                                sc.nextLine();
                                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                                 return projectIssues;
                             } else {
                                 System.out.println("Operation cancelled.");
+                                System.out.println("Press Enter to continue...");
+                                sc.nextLine();
                                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                                 return projectIssues;
                             }
                         } else {    // if changelog is empty
                             System.out.println("You have nothing to undo");
+                            System.out.println("Press Enter to continue...");
+                            sc.nextLine();
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
                         }
@@ -1302,16 +1328,23 @@ public class Main {
                                 newIssueIndex.put("comments", (JSONArray) commentsArr);
                                 projectIssues.set(issueSel, newIssueIndex);
 
+                                System.out.println("Undo Success.");
+                                System.out.println("Press Enter to continue...");
+                                sc.nextLine();
                                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                                 return projectIssues;
                             } else {
                                 System.out.println("Operation cancelled.");
+                                System.out.println("Press Enter to continue...");
+                                sc.nextLine();
                                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                                 return projectIssues;
                             }
                         }
                     } else {        // if changelog empty
                         System.out.println("You have nothing to undo");
+                        System.out.println("Press Enter to continue...");
+                        sc.nextLine();
                         projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                         return projectIssues;
                     }
@@ -1353,15 +1386,22 @@ public class Main {
                                 newIssueIndex.put("comments", (JSONArray) commentsArr);
                                 projectIssues.set(issueSel, newIssueIndex);
 
+                                System.out.println("Redo Successful.");
+                                System.out.println("Press Enter to continue...");
+                                sc.nextLine();
                                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                                 return projectIssues;
                             } else {
                                 System.out.println("Operation cancelled.");
+                                System.out.println("Press Enter to continue...");
+                                sc.nextLine();
                                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                                 return projectIssues;
                             }
                         } else {    // if changelog empty
                             System.out.println("You have nothing to redo");
+                            System.out.println("Press Enter to continue...");
+                            sc.nextLine();
                             projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                             return projectIssues;
                         }
@@ -1405,14 +1445,30 @@ public class Main {
                                 newIssueIndex.put("comments", (JSONArray) commentsArr);
                                 projectIssues.set(issueSel, newIssueIndex);
 
+                                System.out.println("Redo Successful.");
+                                System.out.println("Press Enter to continue...");
+                                sc.nextLine();
                                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                                 return projectIssues;
                             } else {
                                 System.out.println("Operation cancelled.");
+                                System.out.println("Press Enter to continue...");
+                                sc.nextLine();
                                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                                 return projectIssues;
                             }
+                        } else {    // if changelog empty
+                            System.out.println("You have nothing to redo");
+                            System.out.println("Press Enter to continue...");
+                            sc.nextLine();
+                            projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
+                            return projectIssues;
+                        }
+                    }
                 } else {    // other than 1 and 2
+                    System.out.println("Invalid choice!");
+                    System.out.println("Press Enter to continue...");
+                    sc.nextLine();
                     projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                     return projectIssues;
                 }
@@ -1421,6 +1477,8 @@ public class Main {
                 return projectIssues;
             } else {    // return to issue page due to unknown command
                 System.out.println("Unknown command.");
+                System.out.println("Press Enter to continue...");
+                sc.nextLine();
                 projectIssues = issuePage(specificProject, programUser, issueInput, projectIssues);
                 return projectIssues;
             }
@@ -1495,12 +1553,18 @@ public class Main {
                 projectIssues = issueCore(specificProject, programUser, 1);
 
             } else if (issueInput.equalsIgnoreCase("exit")) {   // back to issue dashboard
-                projectIssues = issueCore(specificProject, programUser, 0);
+                projectIssues = issueCore(specificProject, programUser, 1);
             } else {    // unknown command, back to issue dashboard
                 System.out.println("Unknown command.");
+                System.out.println("Press Enter to continue...");
+                sc.nextLine();
                 projectIssues = issueCore(specificProject, programUser, 1);
             }
         }
         return projectIssues;   //insurance
+    }
+
+    public static void newTime(int comID) {
+        timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new java.util.Date());
     }
 }
