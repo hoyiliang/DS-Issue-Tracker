@@ -319,6 +319,7 @@ public class Main {
                     }
 
                     //  Report Generation
+                    int totalOpen=0, totalResolve=0, totalinProgress=0, totalClosed=0;
                     String alignFormat = "|  %-13s  | %-5d |%n";
                     for (int i = 0; i < projects.size(); i++) {
                         System.out.println("Project Name: " + projects.get(i).getName());
@@ -327,12 +328,16 @@ public class Main {
                         for (int j = 0; j < projects.get(i).getIssuesArr().size(); j++) {
                             if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("open")) {
                                 open++;
+                                totalOpen++;
                             } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("resolved")) {
                                 resolve++;
+                                totalResolve++;
                             } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("In Progress")) {
                                 inProgress++;
+                                totalinProgress++;
                             } else if (projects.get(i).getIssues().get(j).getStatus().equalsIgnoreCase("closed")) {
                                 closed++;
+                                totalClosed++;
                             }
                         }
                         int total = open + resolve + inProgress + closed;
@@ -348,6 +353,52 @@ public class Main {
                         System.out.format("+-----------------+-------+%n");
                         System.out.println();
                     }
+                    String TopPerformer = "";
+                    int topPerformerIndex = 0;
+                    int highestUserScore = 0;
+                    int UserScore = 0;
+                    for (int i=0;i<users.size();i++) {
+                        UserScore = 0;
+                        for (int j=0;j<projects.size();j++) {
+                            for (int k=0;k<projects.get(j).getIssues().size();k++) {
+                                if (projects.get(j).getIssues().get(k).getAssignee().equals(users.get(i).getUsername()) || projects.get(j).getIssues().get(k).getCreatedBy().equals(users.get(i).getUsername())) {
+                                    UserScore++;
+                                }
+                                for (int l=0;l<projects.get(j).getIssues().get(k).getComments().size();l++) {
+                                    if (projects.get(j).getIssues().get(k).getComments().get(l).getUser().equals(users.get(i).getUsername())) {
+                                        UserScore++;
+                                    }
+                                }
+                            }
+                        }
+                        if (UserScore > highestUserScore) {
+                            highestUserScore = UserScore;
+                            topPerformerIndex = i;
+                        }
+                    }
+                    int highestLabel = 0;
+                    String topLabel = "";
+                    if (totalOpen > highestLabel) {
+                        highestLabel = totalOpen;
+                        topLabel = "Open";
+                    }
+                    if (totalResolve > highestLabel) {
+                        highestLabel = totalResolve;
+                        topLabel = "Resolved";
+                    }
+                    if (totalinProgress > highestLabel) {
+                        highestLabel = totalinProgress;
+                        topLabel = "In Progress";
+                    }
+                    if (totalClosed > highestLabel) {
+                        highestLabel = totalClosed;
+                        topLabel = "Closed";
+                    }
+                    TopPerformer = users.get(topPerformerIndex).getUsername();
+                    System.out.println("Top performer of this team is: " +TopPerformer +"!" +"\nWith an occurance score of: " +highestUserScore +"!");
+                    System.out.println("Most frequent label occured: " +topLabel);
+                    System.out.println("Press Enter to continue...");
+                    sc.nextLine();
 
                     // Asks user if wants to export new JSON data.
                     System.out.print("Do you want to export new JSON data to a file? (y/n): ");
