@@ -399,6 +399,7 @@ public class Main {
                     System.out.println("Most frequent label occured: " +topLabel);
                     System.out.println("Press Enter to continue...");
                     sc.nextLine();
+                    sc.nextLine();
 
                     // Asks user if wants to export new JSON data.
                     System.out.print("Do you want to export new JSON data to a file? (y/n): ");
