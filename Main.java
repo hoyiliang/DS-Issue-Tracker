@@ -247,7 +247,19 @@ public class Main {
                         getSecretKey = authCode.generateSecretKey();
                         System.out.println("Your new Secret Key is: " + getSecretKey + ", Please create a new 2FA user in the website: ");
                         System.out.println("https://gauth.apps.gbraad.nl/#main");
+                        
+                        JSONObject newUserIndex = new JSONObject();
+                        newUserIndex.put("userid", getID);
+                        newUserIndex.put("username", getUsername);
+                        newUserIndex.put("password", getPass);
+                        newUserIndex.put("skey", getSecretKey);
+                        usersArr.set((int) getID-1, newUserIndex);
+                        users.set((int) getID-1, new User(getID, getUsername, getPass, getSecretKey));
                         connection.setUser(getID, getSecretKey);
+                        
+                        System.out.println("Press Enter to login again...");
+                        sc.nextLine();
+                        loginInterface(usersArr, projectsArr);
                     } else {    //Asks user for the OTP if they have a secret key associated with their account.
                         System.out.print("Enter your OTP from the website: ");
                         String OTP = sc.nextLine();
