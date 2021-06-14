@@ -158,7 +158,7 @@ public class Main {
                     long userID = (long) userIndex.get("userid");
                     String userName = (String) userIndex.get("username");
                     String password = (String) userIndex.get("password");
-                    String SecretKey = "";
+                    String SecretKey = null;
 
                     userIndex.put("skey", (String) SecretKey);
                     usersArr.add(userIndex);
@@ -174,7 +174,7 @@ public class Main {
                     long userID = (long) userIndex.get("userid");
                     String userName = (String) userIndex.get("username");
                     String password = (String) userIndex.get("password");
-                    String SecretKey = "";
+                    String SecretKey = null;
 
                     for (int j = 0; j < users.size(); j++) {
                         if (users.get(j).getUsername().equals(userName)) {
